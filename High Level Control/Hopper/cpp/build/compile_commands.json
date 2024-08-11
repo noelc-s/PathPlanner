@@ -1,0 +1,278 @@
+[
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqpstatic.dir/src/auxil.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/auxil.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/auxil.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqpstatic.dir/src/auxil.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqpstatic.dir/src/error.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/error.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/error.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqpstatic.dir/src/error.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqpstatic.dir/src/lin_alg.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/lin_alg.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/lin_alg.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqpstatic.dir/src/lin_alg.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqpstatic.dir/src/osqp.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/osqp.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/osqp.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqpstatic.dir/src/osqp.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqpstatic.dir/src/proj.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/proj.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/proj.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqpstatic.dir/src/proj.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqpstatic.dir/src/scaling.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/scaling.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/scaling.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqpstatic.dir/src/scaling.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqpstatic.dir/src/util.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/util.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/util.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqpstatic.dir/src/util.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqpstatic.dir/src/kkt.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/kkt.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/kkt.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqpstatic.dir/src/kkt.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqpstatic.dir/src/cs.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/cs.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/cs.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqpstatic.dir/src/cs.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqpstatic.dir/src/polish.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/polish.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/polish.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqpstatic.dir/src/polish.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqpstatic.dir/src/lin_sys.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/lin_sys.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/lin_sys.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqpstatic.dir/src/lin_sys.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqpstatic.dir/src/ctrlc.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/ctrlc.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/ctrlc.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqpstatic.dir/src/ctrlc.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqpstatic.dir/lin_sys/lib_handler.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/lib_handler.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/lib_handler.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqpstatic.dir/lin_sys/lib_handler.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc -Dosqp_EXPORTS -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqp.dir/src/auxil.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/auxil.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/auxil.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqp.dir/src/auxil.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc -Dosqp_EXPORTS -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqp.dir/src/error.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/error.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/error.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqp.dir/src/error.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc -Dosqp_EXPORTS -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqp.dir/src/lin_alg.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/lin_alg.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/lin_alg.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqp.dir/src/lin_alg.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc -Dosqp_EXPORTS -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqp.dir/src/osqp.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/osqp.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/osqp.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqp.dir/src/osqp.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc -Dosqp_EXPORTS -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqp.dir/src/proj.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/proj.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/proj.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqp.dir/src/proj.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc -Dosqp_EXPORTS -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqp.dir/src/scaling.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/scaling.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/scaling.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqp.dir/src/scaling.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc -Dosqp_EXPORTS -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqp.dir/src/util.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/util.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/util.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqp.dir/src/util.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc -Dosqp_EXPORTS -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqp.dir/src/kkt.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/kkt.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/kkt.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqp.dir/src/kkt.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc -Dosqp_EXPORTS -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqp.dir/src/cs.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/cs.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/cs.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqp.dir/src/cs.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc -Dosqp_EXPORTS -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqp.dir/src/polish.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/polish.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/polish.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqp.dir/src/polish.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc -Dosqp_EXPORTS -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqp.dir/src/lin_sys.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/lin_sys.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/lin_sys.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqp.dir/src/lin_sys.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc -Dosqp_EXPORTS -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqp.dir/src/ctrlc.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/ctrlc.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/src/ctrlc.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqp.dir/src/ctrlc.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc -Dosqp_EXPORTS -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/osqp.dir/lin_sys/lib_handler.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/lib_handler.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/lib_handler.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqp.dir/lin_sys/lib_handler.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIE -o CMakeFiles/osqp_demo.dir/examples/osqp_demo.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/examples/osqp_demo.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/examples/osqp_demo.c",
+  "output": "_deps/osqp-build/CMakeFiles/osqp_demo.dir/examples/osqp_demo.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/linsys_pardiso.dir/pardiso/pardiso_interface.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso/pardiso_interface.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso/pardiso_interface.c",
+  "output": "_deps/osqp-build/lin_sys/direct/CMakeFiles/linsys_pardiso.dir/pardiso/pardiso_interface.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/linsys_pardiso.dir/pardiso/pardiso_loader.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso/pardiso_loader.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/pardiso/pardiso_loader.c",
+  "output": "_deps/osqp-build/lin_sys/direct/CMakeFiles/linsys_pardiso.dir/pardiso/pardiso_loader.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/linsys_qdldl.dir/amd/src/amd_1.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_1.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_1.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/CMakeFiles/linsys_qdldl.dir/amd/src/amd_1.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/linsys_qdldl.dir/amd/src/amd_2.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_2.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_2.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/CMakeFiles/linsys_qdldl.dir/amd/src/amd_2.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/linsys_qdldl.dir/amd/src/amd_aat.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_aat.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_aat.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/CMakeFiles/linsys_qdldl.dir/amd/src/amd_aat.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/linsys_qdldl.dir/amd/src/amd_control.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_control.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_control.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/CMakeFiles/linsys_qdldl.dir/amd/src/amd_control.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/linsys_qdldl.dir/amd/src/amd_defaults.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_defaults.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_defaults.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/CMakeFiles/linsys_qdldl.dir/amd/src/amd_defaults.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/linsys_qdldl.dir/amd/src/amd_info.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_info.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_info.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/CMakeFiles/linsys_qdldl.dir/amd/src/amd_info.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/linsys_qdldl.dir/amd/src/amd_order.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_order.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_order.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/CMakeFiles/linsys_qdldl.dir/amd/src/amd_order.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/linsys_qdldl.dir/amd/src/amd_post_tree.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_post_tree.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_post_tree.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/CMakeFiles/linsys_qdldl.dir/amd/src/amd_post_tree.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/linsys_qdldl.dir/amd/src/amd_postorder.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_postorder.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_postorder.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/CMakeFiles/linsys_qdldl.dir/amd/src/amd_postorder.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/linsys_qdldl.dir/amd/src/amd_preprocess.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_preprocess.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_preprocess.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/CMakeFiles/linsys_qdldl.dir/amd/src/amd_preprocess.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/linsys_qdldl.dir/amd/src/amd_valid.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_valid.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/amd_valid.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/CMakeFiles/linsys_qdldl.dir/amd/src/amd_valid.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/linsys_qdldl.dir/amd/src/SuiteSparse_config.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/SuiteSparse_config.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/src/SuiteSparse_config.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/CMakeFiles/linsys_qdldl.dir/amd/src/SuiteSparse_config.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/amd/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/include\"  -O3 -fPIC -o CMakeFiles/linsys_qdldl.dir/qdldl_interface.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_interface.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_interface.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/CMakeFiles/linsys_qdldl.dir/qdldl_interface.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl/qdldl_sources",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\"  -O3 -O3 -fPIC -o CMakeFiles/qdldlobject.dir/src/qdldl.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/src/qdldl.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/src/qdldl.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/qdldl_sources/CMakeFiles/qdldlobject.dir/src/qdldl.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl/qdldl_sources",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\"  -O3 -O3 -fPIC -o CMakeFiles/qdldlstatic.dir/src/qdldl.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/src/qdldl.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/src/qdldl.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/qdldl_sources/CMakeFiles/qdldlstatic.dir/src/qdldl.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl/qdldl_sources",
+  "command": "/usr/bin/cc -Dqdldl_EXPORTS -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\"  -O3 -O3 -fPIC -o CMakeFiles/qdldl.dir/src/qdldl.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/src/qdldl.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/src/qdldl.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/qdldl_sources/CMakeFiles/qdldl.dir/src/qdldl.c.o"
+},
+{
+  "directory": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-build/lin_sys/direct/qdldl/qdldl_sources",
+  "command": "/usr/bin/cc  -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys\" -I\"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/include\"  -O3 -O3 -fPIE -o CMakeFiles/qdldl_example.dir/examples/example.c.o -c \"/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/examples/example.c\"",
+  "file": "/home/noelcs/repos/ThinkingThroughThings/High Level Control/Hopper/cpp/build/_deps/osqp-src/lin_sys/direct/qdldl/qdldl_sources/examples/example.c",
+  "output": "_deps/osqp-build/lin_sys/direct/qdldl/qdldl_sources/CMakeFiles/qdldl_example.dir/examples/example.c.o"
+}
+]

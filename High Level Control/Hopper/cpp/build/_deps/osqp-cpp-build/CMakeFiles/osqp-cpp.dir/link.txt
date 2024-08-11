@@ -1,0 +1,2 @@
+/usr/bin/ar qc libosqp-cpp.a "CMakeFiles/osqp-cpp.dir/src/osqp++.cc.o"
+/usr/bin/ranlib libosqp-cpp.a
