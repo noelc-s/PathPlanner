@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(graph)
+project(path_planning)
 
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 14)
@@ -30,9 +30,9 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(osqp-cpp)
-# find_package(matplotlib_cpp HINTS /home/noelcs/repos/matplotlib-cpp_install REQUIRED)
 
-add_executable(graph src/feasibility_test.cpp)
-# target_include_directories(graph PUBLIC /home/noelcs/repos/matplotlib-cpp_install/include)
-# target_include_directories(graph PUBLIC /usr/include/python3.8/)
+add_library(graph STATIC src/graph.cpp)
 target_link_libraries(graph PUBLIC osqp-cpp)
+
+add_executable(path_planning src/feasibility_test.cpp)
+target_link_libraries(path_planning PUBLIC graph)
