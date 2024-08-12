@@ -55,12 +55,6 @@ void log(std::vector<Derived> data, std::ofstream& file, std::string name)
     file << "];" << std::endl;
 }
 
-struct Obstacle
-{
-    matrix_t A_obstacle;
-    vector_t b_obstacle;
-};
-
 std::vector<vector_2t> generateUniformPoints(int n, double min_x, double max_x, double min_y, double max_y);
 bool adjacent(vector_2t p1, vector_2t p2);
 double get_weight(vector_2t p1, vector_2t p2);
