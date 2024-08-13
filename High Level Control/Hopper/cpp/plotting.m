@@ -16,25 +16,26 @@ for i = 1:(size(Points,1))
     center(i,:) = pt;
     v{i} = d;
 
-    d = Sol(((i-1)*num_opt+1):i*num_opt,:);
-    p(i,:) = d(1:dim_per_sample)'*v{i};
-    viol = norm(d(dim_per_sample+1:end));
-
-    if viol < 0.25
-        if plot_nodes
-            patch(v{i}(:,1),v{i}(:,2),'r','facealpha',0.001);
-        end
-        color(i,:) = [1 0 0];
-    else
-        if plot_nodes
-            patch(v{i}(:,1),v{i}(:,2),'b','facealpha',0.025);
-        end
-        color(i,:) = [0 1 0];
-    end
+    % d = Sol(((i-1)*num_opt+1):i*num_opt,:);
+    % p(i,:) = d(1:dim_per_sample)'*v{i};
+    % viol = norm(d(dim_per_sample+1:end));
+    % 
+    % if viol < 0.25
+    %     if plot_nodes
+    %         patch(v{i}(:,1),v{i}(:,2),'r','facealpha',0.001);
+    %     end
+    %     color(i,:) = [1 0 0];
+    % else
+    %     if plot_nodes
+    %         patch(v{i}(:,1),v{i}(:,2),'b','facealpha',0.025);
+    %     end
+    %     color(i,:) = [0 1 0];
+    % end
+    color(i,:) = [0 0 1];
 end
 if plot_nodes
     scatter(center(:,1),center(:,2),100,color,'filled');
-    scatter(p(:,1),p(:,2),10,color,'filled');
+    % scatter(p(:,1),p(:,2),10,color,'filled');
 end
 
 if plot_nodes
@@ -75,16 +76,27 @@ for pt = 1:size(Path,2)
     start_v = scatter(center(P(1),1),center(P(1),2),100,'b','filled');
     end_v = scatter(center(P(end),1),center(P(end),2),100,'b','filled');
     num_traj = 100;
-    Obs = [[1 1 -1 -1] - 0.*sin(2*3.14 * (pt-1) / num_traj); [1 -1 -1 1] + 2.0*cos(2*3.14 * (pt-1) / num_traj)];
-    % Obs = [[1 1 -1 -1]; [1 -1 -1 1]];
-    O_p = patch(Obs(1,:),Obs(2,:),'r','facealpha',0.1);
+    mag = 1.0;
+    nom = [[1 1 -1 -1]-1; [1.5 1 1 1.5]+1];
+    % Obs = nom;
+    Obs = [nom(1,:); nom(2,:) + mag*cos(2*3.14 * (pt-1) / num_traj)];
+    O_p(1) = patch(Obs(1,:),Obs(2,:),'r','facealpha',0.1);
+    nom = [[1.5 1 1 1.5]-1; [1.5 1.5 -1.5 -1.5]+1];
+    % Obs = nom;
+    Obs = [nom(1,:); nom(2,:) + mag*cos(2*3.14 * (pt-1) / num_traj)];
+    O_p(2) = patch(Obs(1,:),Obs(2,:),'r','facealpha',0.1);
+    nom = [[-1.5 -1 -1 -1.5]-1; [1.5 1.5 -1.5 -1.5]+1];
+    % Obs = nom;
+    Obs = [nom(1,:); nom(2,:) + mag*cos(2*3.14 * (pt-1) / num_traj)];
+    O_p(3) = patch(Obs(1,:),Obs(2,:),'r','facealpha',0.1);
+    
 
     x = MPC{pt}(x_ind);
     u = MPC{pt}(u_ind);
     x = reshape(x, 4, [])';
     u = reshape(u, 2, [])';
     
-    mpc_plot = plot(x(:,1),x(:,2),'b','linewidth',5);
+    mpc_plot = plot(x(:,1),x(:,2),'bo-','linewidth',5);
 
     drawnow
 end

@@ -27,7 +27,8 @@ public:
     void buildDynamicEquality();
     void buildConstaintInequality(const std::vector<matrix_t> A_constraint, const std::vector<vector_t> b_constraint);
     void buildCost();
-    void buildFromOptimalGraphSolve(const Obstacle obstacle, const vector_t optimal_solution,
+    void buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles, const int num_adjacent_pts,
+                         const int num_obstacle_faces, const std::vector<vector_t> optimal_solution,
                          const std::vector<int> optimalInd, const std::vector<vector_t> optimalPath);
     vector_t solve(const vector_t& x0); 
     void reset();

@@ -87,12 +87,10 @@ void MPC::buildConstaintInequality(const std::vector<matrix_t> A_constraint, con
 
     int total_rows = std::accumulate(A_constraint.begin(), A_constraint.end(), 0, 
                                  [](int sum, const matrix_t& mat) { return sum + mat.rows(); });
-
     constraint_A.resize(total_rows, nx_*p.N);
     constraint_b.resize(total_rows);
     constraint_A.setZero();
     constraint_b.setZero();
-
     int row = 0;
     for (int i = 0; i < num_constraints; i++) {
         for (int j = 0; j < A_constraint[i].rows(); j++) {
@@ -123,8 +121,10 @@ void MPC::buildCost()
     f.setZero();
 }
 
-void MPC::buildFromOptimalGraphSolve(const Obstacle obstacle,
-                    const vector_t optimal_solution, const std::vector<int> optimalInd,
+void MPC::buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles,
+                    const int num_adjacent_pts,
+                    const int num_obstacle_faces,
+                    const std::vector<vector_t> optimalSolutions, const std::vector<int> optimalInd,
                     const std::vector<vector_t> optimalPath)
 {
     std::vector<matrix_t> A_constraint;
@@ -134,15 +134,28 @@ void MPC::buildFromOptimalGraphSolve(const Obstacle obstacle,
     for (int i = 0; i < optimalInd.size(); i++) {
         // Have to traverse the list backwards
         const int vertex_ind = optimalInd[optimalInd.size()-1-i];
-        vector_t violation = optimal_solution.segment(vertex_ind*(20)+16,4);
         // TODO: make this logic more sound or prove it
-        Eigen::Index maxIndex;
-        violation.maxCoeff(&maxIndex);
+        // min(max viol) over all obstacles
+        double min_violation = 1e5;
         matrix_t A_obs(1,4);
-        A_obs << obstacle.A_obstacle.row(maxIndex);
+        vector_t b_obs(1);
+        for (int i = 0; i < optimalSolutions.size(); i++) {
+            vector_t optimal_solution = optimalSolutions[i];
+            Obstacle obstacle = obstacles[i];
+            vector_t violation = optimal_solution.segment(vertex_ind*(num_adjacent_pts+num_obstacle_faces)+num_adjacent_pts,num_obstacle_faces);
+            Eigen::Index maxIndex;
+            double violation_mag = violation.maxCoeff(&maxIndex);
+            if (violation_mag < min_violation)
+            {
+                A_obs << obstacle.A_obstacle.row(maxIndex);
+                b_obs << obstacle.b_obstacle.segment(maxIndex,1);
+                min_violation = violation_mag;
+            }
+        }
         A_constraint.push_back(A_obs);
-        b_constraint.push_back(obstacle.b_obstacle.segment(maxIndex,1));
+        b_constraint.push_back(b_obs);
         f_ref.segment(i*nx_,nx_) << optimalPath[optimalInd.size()-1-i];
+        // f_ref.segment(i*nx_,nx_) << optimalPath.front();
     }
     vector_t x_terminal;
     x_terminal = optimalPath.front();

@@ -66,7 +66,7 @@ std::vector<matrix_t> getReachableVertices(const std::vector<vector_4t> points)
     const int num_adjacent_pts = pow(2,4);
 
     std::vector<matrix_t> vertices;
-    const double dim_of_R = .3;
+    const double dim_of_R = .03;
 
     for (int i = 0; i < num_pts; i++)
     {
