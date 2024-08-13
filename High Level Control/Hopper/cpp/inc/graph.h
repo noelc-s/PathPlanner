@@ -8,7 +8,7 @@
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/copy.hpp>
 
-const double distance_tol = 0.5;
+const double distance_tol = 0.25;
 const double viol_tol = 0.25;
 
 using namespace osqp;
@@ -55,16 +55,17 @@ void log(std::vector<Derived> data, std::ofstream& file, std::string name)
     file << "];" << std::endl;
 }
 
-std::vector<vector_2t> generateUniformPoints(int n, double min_x, double max_x, double min_y, double max_y);
-bool adjacent(vector_2t p1, vector_2t p2);
-double get_weight(vector_2t p1, vector_2t p2);
+std::vector<vector_4t> generateUniformPoints(int n, double min_x, double max_x, double min_y, double max_y,
+                                                    double min_dx, double max_dx, double min_dy, double max_dy);
+bool adjacent(vector_4t p1, vector_4t p2);
+double get_weight(vector_4t p1, vector_4t p2);
 
 std::ofstream open_log_file(std::string filename);
-Graph buildGraph(std::vector<vector_2t> points, Obstacle obstacle);
-void cutEdges(Graph &g, const int num_pts, const int num_obstacle_faces, VectorXd optimal_solution);
-void solveGraph(std::vector<vector_2t> points, vector_2t starting_loc, vector_2t ending_loc,
+Graph buildGraph(std::vector<vector_4t> points);
+void cutEdges(Graph &g, const int num_pts, const int num_adjacent_pts, const int num_obstacle_faces, VectorXd optimal_solution);
+void solveGraph(std::vector<vector_4t> points, vector_4t starting_loc, vector_4t ending_loc,
     int &starting_ind, int& ending_ind, Graph g, std::vector<double> d, std::vector<Vertex>& p);
-std::vector<matrix_t> getReachableVertices(const std::vector<vector_2t> points);
+std::vector<matrix_t> getReachableVertices(const std::vector<vector_4t> points);
 
 
 void setupQP(OsqpInstance& instance, const std::vector<matrix_t> vertices, const Obstacle obstacle);

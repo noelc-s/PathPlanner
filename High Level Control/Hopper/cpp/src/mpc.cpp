@@ -35,14 +35,14 @@ MPC::MPC_Params loadParams()
 {
     MPC::MPC_Params p;
     p.N = 50;
-    p.dt = 1;
+    p.dt = .2;
     p.SQP_iter = 1;
     p.stateScaling.resize(4);
     p.stateScaling << 1,1,1,1;
     p.inputScaling.resize(2);
     p.inputScaling << .01,.01;
     p.terminalScaling = 1;
-    p.tau_max = 100;
+    p.tau_max = 10;
 
     return p;
 }
@@ -84,19 +84,20 @@ void MPC::buildDynamicEquality() {
 
 void MPC::buildConstaintInequality(const std::vector<matrix_t> A_constraint, const std::vector<vector_t> b_constraint) {
     const int num_constraints = A_constraint.size();
-    assert(p.N == num_constraints); // , "Horizon length different than size of constaints passed."
 
     int total_rows = std::accumulate(A_constraint.begin(), A_constraint.end(), 0, 
                                  [](int sum, const matrix_t& mat) { return sum + mat.rows(); });
 
     constraint_A.resize(total_rows, nx_*p.N);
     constraint_b.resize(total_rows);
+    constraint_A.setZero();
+    constraint_b.setZero();
 
     int row = 0;
     for (int i = 0; i < num_constraints; i++) {
         for (int j = 0; j < A_constraint[i].rows(); j++) {
             for (int k = 0; k < nx_; k++) {
-                constraint_A.insert(row, i*nx_ + j) = A_constraint[i](j, k);
+                constraint_A(row, i*nx_ + k) = A_constraint[i](j, k);
             }
             constraint_b(row++) = b_constraint[i](j);
         }
@@ -133,27 +134,21 @@ void MPC::buildFromOptimalGraphSolve(const Obstacle obstacle,
     for (int i = 0; i < optimalInd.size(); i++) {
         // Have to traverse the list backwards
         const int vertex_ind = optimalInd[optimalInd.size()-1-i];
-        vector_t violation = optimal_solution.segment(vertex_ind*8,4);
+        vector_t violation = optimal_solution.segment(vertex_ind*(20)+16,4);
         // TODO: make this logic more sound or prove it
         Eigen::Index maxIndex;
         violation.maxCoeff(&maxIndex);
         matrix_t A_obs(1,4);
-        A_obs << obstacle.A_obstacle.row(maxIndex), 0, 0;
+        A_obs << obstacle.A_obstacle.row(maxIndex);
         A_constraint.push_back(A_obs);
         b_constraint.push_back(obstacle.b_obstacle.segment(maxIndex,1));
-        f_ref.segment(i*nx_,nx_) << optimalPath[optimalInd.size()-1-i], 0, 0;
+        f_ref.segment(i*nx_,nx_) << optimalPath[optimalInd.size()-1-i];
     }
-    matrix_t A_terminal(1,4);
-    vector_t b_terminal(1);
     vector_t x_terminal;
-    A_terminal << 0,0,0,0;
-    b_terminal << 1;
     x_terminal = optimalPath.front();
     for (int i = optimalInd.size(); i < p.N; i++) 
     {    
-        A_constraint.push_back(A_terminal);
-        b_constraint.push_back(b_terminal);
-        f_ref.segment(i*nx_,nx_) << x_terminal, 0, 0;
+        f_ref.segment(i*nx_,nx_) << x_terminal;
     }
     buildConstaintInequality(A_constraint, b_constraint);
     f = -H*f_ref;
@@ -175,7 +170,7 @@ vector_t MPC::solve(const vector_t& x0) {
     dynamics_b_lb.segment(0,nx_) = x0;
     dynamics_b_ub.segment(0,nx_) = x0;
 
-    lb << dynamics_b_lb, -std::numeric_limits<double>::infinity() * vector_t::Ones(constraint_b.size());
+    lb << dynamics_b_lb, constraint_b;
     ub << dynamics_b_ub, std::numeric_limits<double>::infinity() * vector_t::Ones(constraint_b.size());
     for (int i = 0; i < dynamics_A.rows(); i++) {
         for (int j = 0; j < nvar_; j++) {
@@ -184,7 +179,7 @@ vector_t MPC::solve(const vector_t& x0) {
     }
     for (int i = 0; i < constraint_A.rows(); i++) {
         for (int j = 0; j < nx_*p.N; j++) {
-            constraints.insert(i + dynamics_A.rows(), j) = constraint_A.coeff(i, j);
+            constraints.insert(i + dynamics_A.rows(), j) = constraint_A(i, j);
         }
     }
     instance.constraint_matrix = constraints;

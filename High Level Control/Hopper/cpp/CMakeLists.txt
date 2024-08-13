@@ -31,7 +31,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(osqp-cpp)
 
-add_library(graph STATIC src/graph.cpp)
+add_library(graph STATIC src/graph.cpp src/mpc.cpp)
 target_link_libraries(graph PUBLIC osqp-cpp)
 
 add_executable(path_planning src/feasibility_test.cpp)

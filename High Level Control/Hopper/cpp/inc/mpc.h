@@ -37,7 +37,8 @@ private:
     matrix_t Ad_;         // State transition matrix
     matrix_t Bd_;         // Control input matrix
     SparseMatrix<double> SparseIdentity;
-    SparseMatrix<double> dynamics_A, constraint_A;
+    SparseMatrix<double> dynamics_A;
+    matrix_t constraint_A;
     vector_t dynamics_b_lb, dynamics_b_ub, constraint_b;
     SparseMatrix<double> H;
     vector_t f, full_ref;

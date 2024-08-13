@@ -1,31 +1,34 @@
 #include "../inc/graph.h"
 
-std::vector<vector_2t> generateUniformPoints(int n, double min_x, double max_x, double min_y, double max_y)
+std::vector<vector_4t> generateUniformPoints(int n, double min_x, double max_x, double min_y, double max_y,
+                                                    double min_dx, double max_dx, double min_dy, double max_dy)
 {
-    std::vector<vector_2t> points;
+    std::vector<vector_4t> points;
     points.reserve(n);
 
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis_x(min_x, max_x);
     std::uniform_real_distribution<> dis_y(min_y, max_y);
+    std::uniform_real_distribution<> dis_dx(min_dx, max_dx);
+    std::uniform_real_distribution<> dis_dy(min_dy, max_dy);
 
     for (int i = 0; i < n; ++i)
     {
-        vector_2t point;
-        point << dis_x(gen), dis_y(gen);
+        vector_4t point;
+        point << dis_x(gen), dis_y(gen), dis_dx(gen), dis_dy(gen);
         points.push_back(point);
     }
 
     return points;
 }
 
-bool adjacent(vector_2t p1, vector_2t p2)
+bool adjacent(vector_4t p1, vector_4t p2)
 {
     return (p1 - p2).norm() < distance_tol;
 }
 
-double get_weight(vector_2t p1, vector_2t p2)
+double get_weight(vector_4t p1, vector_4t p2)
 {
     return (p1 - p2).norm();
 }
@@ -40,7 +43,7 @@ std::ofstream open_log_file(std::string filename)
     return output_file;
 }
 
-Graph buildGraph(std::vector<vector_2t> points, Obstacle obstacle)
+Graph buildGraph(std::vector<vector_4t> points)
 {
     const int num_pts = points.size();
     Graph g(num_pts);
@@ -57,10 +60,10 @@ Graph buildGraph(std::vector<vector_2t> points, Obstacle obstacle)
     return g;
 }
 
-std::vector<matrix_t> getReachableVertices(const std::vector<vector_2t> points)
+std::vector<matrix_t> getReachableVertices(const std::vector<vector_4t> points)
 {
     const int num_pts = points.size();
-    const int num_adjacent_pts = 4;
+    const int num_adjacent_pts = pow(2,4);
 
     std::vector<matrix_t> vertices;
     const double dim_of_R = .3;
@@ -69,8 +72,22 @@ std::vector<matrix_t> getReachableVertices(const std::vector<vector_2t> points)
     {
         matrix_t v;
         v.resize(points[0].size(), num_adjacent_pts);
-        v << points[i][0] + dim_of_R, points[i][0] + dim_of_R, points[i][0] - dim_of_R, points[i][0] - dim_of_R,
-            points[i][1] + dim_of_R, points[i][1] - dim_of_R, points[i][1] - dim_of_R, points[i][1] + dim_of_R;
+        v << points[i][0] + dim_of_R, points[i][0] + dim_of_R, points[i][0] + dim_of_R, points[i][0] + dim_of_R,
+                points[i][0] + dim_of_R, points[i][0] + dim_of_R, points[i][0] + dim_of_R, points[i][0] + dim_of_R,
+                points[i][0] - dim_of_R, points[i][0] - dim_of_R, points[i][0] - dim_of_R, points[i][0] - dim_of_R,
+                points[i][0] - dim_of_R, points[i][0] - dim_of_R, points[i][0] - dim_of_R, points[i][0] - dim_of_R,
+            points[i][1] + dim_of_R, points[i][1] + dim_of_R, points[i][1] + dim_of_R, points[i][1] + dim_of_R,
+                points[i][1] - dim_of_R, points[i][1] - dim_of_R, points[i][1] - dim_of_R, points[i][1] - dim_of_R,
+                points[i][1] - dim_of_R, points[i][1] - dim_of_R, points[i][1] - dim_of_R, points[i][1] - dim_of_R,
+                points[i][1] + dim_of_R, points[i][1] + dim_of_R, points[i][1] + dim_of_R, points[i][1] + dim_of_R,
+            points[i][2] + dim_of_R, points[i][2] + dim_of_R, points[i][2] - dim_of_R, points[i][2] - dim_of_R,
+                points[i][2] + dim_of_R, points[i][2] + dim_of_R, points[i][2] - dim_of_R, points[i][2] - dim_of_R,
+                points[i][2] + dim_of_R, points[i][2] + dim_of_R, points[i][2] - dim_of_R, points[i][2] - dim_of_R,
+                points[i][2] + dim_of_R, points[i][2] + dim_of_R, points[i][2] - dim_of_R, points[i][2] - dim_of_R,
+            points[i][3] + dim_of_R, points[i][3] - dim_of_R, points[i][3] - dim_of_R, points[i][3] + dim_of_R,
+                points[i][3] + dim_of_R, points[i][3] - dim_of_R, points[i][3] - dim_of_R, points[i][3] + dim_of_R,
+                points[i][3] + dim_of_R, points[i][3] - dim_of_R, points[i][3] - dim_of_R, points[i][3] + dim_of_R,
+                points[i][3] + dim_of_R, points[i][3] - dim_of_R, points[i][3] - dim_of_R, points[i][3] + dim_of_R,
         vertices.push_back(v);
         
     }
@@ -81,7 +98,7 @@ std::vector<matrix_t> getReachableVertices(const std::vector<vector_2t> points)
 
 void setupQP(OsqpInstance& instance, const std::vector<matrix_t> vertices, const Obstacle obstacle)
 {
-    const int num_adjacent_pts = 4; // TODO: make this stored via size of Reachable sets
+    const int num_adjacent_pts = pow(2,4); // TODO: make this stored via size of Reachable sets
     // decision variables are lambda_i and slack_i for each adj pt. [l1 l2 ... s1 s2 ...]
     const int num_obstacle_faces = obstacle.b_obstacle.size();
     const int num_pts = vertices.size();
@@ -89,7 +106,7 @@ void setupQP(OsqpInstance& instance, const std::vector<matrix_t> vertices, const
     const int num_const_per_pt = 1 + num_adjacent_pts + num_obstacle_faces;
     SparseMatrix<double> objective_matrix(num_pts * num_dec_per_pt, num_pts * num_dec_per_pt);
     objective_matrix.setIdentity(); // cost does not matter right now
-    instance.objective_matrix = 0.001 * objective_matrix;
+    instance.objective_matrix = objective_matrix;
     instance.objective_vector.resize(num_pts * num_dec_per_pt);
     instance.objective_vector.setZero();
 
@@ -126,6 +143,9 @@ void setupQP(OsqpInstance& instance, const std::vector<matrix_t> vertices, const
             {
                 tripletsA.emplace_back(p * num_const_per_pt + 1 + num_adjacent_pts + j, p * num_dec_per_pt + i, constraint(j));
             }
+        }
+        for (int i = 0; i < num_obstacle_faces; i++)
+        {
             tripletsA.emplace_back(p * num_const_per_pt + 1 + num_adjacent_pts + i, p * num_dec_per_pt + num_adjacent_pts + i, -1);
         }
 
@@ -167,21 +187,21 @@ int solveQP(OsqpSolver &solver)
     return 0;
 }
 
-void cutEdges(Graph &g, const int num_pts, const int num_obstacle_faces, VectorXd optimal_solution)
+void cutEdges(Graph &g, const int num_pts, const int num_adjacent_pts, const int num_obstacle_faces, VectorXd optimal_solution)
 {
     for (int i = 0; i < num_pts; i++) {
-        if (optimal_solution.segment(i*2*num_obstacle_faces+4,4).norm() < viol_tol)
+        if (optimal_solution.segment(i*(num_adjacent_pts+num_obstacle_faces)+num_adjacent_pts,num_obstacle_faces).norm() < viol_tol)
         {
             clear_vertex(i, g);
         }
     }
 }
 
-void solveGraph(std::vector<vector_2t> points, vector_2t starting_loc, vector_2t ending_loc,
+void solveGraph(std::vector<vector_4t> points, vector_4t starting_loc, vector_4t ending_loc,
                 int &starting_ind, int& ending_ind, Graph g, std::vector<double> d, std::vector<Vertex>& p)
 {
-    double closest_starting_dist = 1e2;
-    double closest_ending_dist = 1e2;
+    double closest_starting_dist = 1e5;
+    double closest_ending_dist = 1e5;
     const int num_pts = points.size();
     for (int i = 0; i < num_pts; i++) {
         double s_dist = (points[i] - starting_loc).norm();
