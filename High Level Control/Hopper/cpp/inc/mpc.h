@@ -23,13 +23,19 @@ public:
         double tau_max;
     } p;
 
+    SparseMatrix<double> constraints;
+    vector_t lb, ub;
+
     MPC(const int nx, const int nu, const MPC_Params loaded_p);
     void buildDynamicEquality();
-    void buildConstaintInequality(const std::vector<matrix_t> A_constraint, const std::vector<vector_t> b_constraint);
+    void buildConstraintInequality(const std::vector<matrix_t> A_constraint, const std::vector<vector_t> b_constraint);
     void buildCost();
     void buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles, const int num_adjacent_pts,
                          const int num_obstacle_faces, const std::vector<vector_t> optimal_solution,
                          const std::vector<int> optimalInd, const std::vector<vector_t> optimalPath);
+    void initialize();
+    void updateConstraints(const vector_t& x0);
+    void updateCost();
     vector_t solve(const vector_t& x0); 
     void reset();
 

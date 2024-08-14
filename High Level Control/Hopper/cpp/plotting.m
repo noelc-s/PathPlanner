@@ -37,16 +37,16 @@ if plot_nodes
     scatter(center(:,1),center(:,2),100,color,'filled');
     % scatter(p(:,1),p(:,2),10,color,'filled');
 end
-
-if plot_nodes
-    x_edges = [];
-    y_edges = [];
-    for i = 1:size(Edges,1)
-        x_edges = [x_edges [center(Edges(i,1)+1,1),center(Edges(i,2)+1,1)] NaN];
-        y_edges = [y_edges [center(Edges(i,1)+1,2),center(Edges(i,2)+1,2)] NaN];
-    end
-    plot(x_edges, y_edges,'k');
-end
+% 
+% if plot_nodes
+%     x_edges = [];
+%     y_edges = [];
+%     for i = 1:size(Edges,1)
+%         x_edges = [x_edges [center(Edges(i,1)+1,1),center(Edges(i,2)+1,1)] NaN];
+%         y_edges = [y_edges [center(Edges(i,1)+1,2),center(Edges(i,2)+1,2)] NaN];
+%     end
+%     plot(x_edges, y_edges,'k');
+% end
 
 O_p = [];
 path_plot = [];
@@ -55,11 +55,13 @@ start_v = [];
 end_v = [];
 axis([-4 4 -4 4])
 axis square
-x_ind = 1:50*4;
-u_ind = (50*4+1):(50*4+49*2);
+mpc_N = 50;
+x_ind = 1:mpc_N*4;
+u_ind = (mpc_N*4+1):(mpc_N*4+(mpc_N-1)*2);
 
 while(1)
 for pt = 1:size(Path,2)
+    tic
     delete(O_p)
     delete(path_plot);
     delete(mpc_plot);
@@ -75,20 +77,15 @@ for pt = 1:size(Path,2)
     path_plot = plot(path_x, path_y,'r','linewidth',1);
     start_v = scatter(center(P(1),1),center(P(1),2),100,'b','filled');
     end_v = scatter(center(P(end),1),center(P(end),2),100,'b','filled');
-    num_traj = 100;
+    num_traj = 10;
     mag = 1.0;
-    nom = [[1 1 -1 -1]-1; [1.5 1 1 1.5]+1];
-    % Obs = nom;
-    Obs = [nom(1,:); nom(2,:) + mag*cos(2*3.14 * (pt-1) / num_traj)];
-    O_p(1) = patch(Obs(1,:),Obs(2,:),'r','facealpha',0.1);
-    nom = [[1.5 1 1 1.5]-1; [1.5 1.5 -1.5 -1.5]+1];
-    % Obs = nom;
-    Obs = [nom(1,:); nom(2,:) + mag*cos(2*3.14 * (pt-1) / num_traj)];
-    O_p(2) = patch(Obs(1,:),Obs(2,:),'r','facealpha',0.1);
-    nom = [[-1.5 -1 -1 -1.5]-1; [1.5 1.5 -1.5 -1.5]+1];
-    % Obs = nom;
-    Obs = [nom(1,:); nom(2,:) + mag*cos(2*3.14 * (pt-1) / num_traj)];
-    O_p(3) = patch(Obs(1,:),Obs(2,:),'r','facealpha',0.1);
+    for obs = 1:length(Obstacle_A)
+    nom = lcon2vert(Obstacle_A{obs}(:,1:2), Obstacle_b{obs});
+    inds = convhull(nom);
+    nom = nom(inds,:)';
+    Obstacle = [nom(1,:) + Obs{pt}(obs,1); nom(2,:) + Obs{pt}(obs,2)];
+    O_p(obs) = patch(Obstacle(1,:),Obstacle(2,:),'r','facealpha',0.1);
+    end
     
 
     x = MPC{pt}(x_ind);
@@ -99,5 +96,7 @@ for pt = 1:size(Path,2)
     mpc_plot = plot(x(:,1),x(:,2),'bo-','linewidth',5);
 
     drawnow
+    val = toc;
+    % pause(0.2 - val);
 end
 end

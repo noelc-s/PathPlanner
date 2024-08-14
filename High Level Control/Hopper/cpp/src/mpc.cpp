@@ -82,7 +82,7 @@ void MPC::buildDynamicEquality() {
     }
 }
 
-void MPC::buildConstaintInequality(const std::vector<matrix_t> A_constraint, const std::vector<vector_t> b_constraint) {
+void MPC::buildConstraintInequality(const std::vector<matrix_t> A_constraint, const std::vector<vector_t> b_constraint) {
     const int num_constraints = A_constraint.size();
 
     int total_rows = std::accumulate(A_constraint.begin(), A_constraint.end(), 0, 
@@ -157,34 +157,35 @@ void MPC::buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles,
         f_ref.segment(i*nx_,nx_) << optimalPath[optimalInd.size()-1-i];
         // f_ref.segment(i*nx_,nx_) << optimalPath.front();
     }
+    matrix_t A_term(1,4);
+    vector_t b_term(1);
+    A_term << 0,0,0,0;
+    b_term << -1;
     vector_t x_terminal;
     x_terminal = optimalPath.front();
     for (int i = optimalInd.size(); i < p.N; i++) 
     {    
+        A_constraint.push_back(A_term);
+        b_constraint.push_back(b_term);
         f_ref.segment(i*nx_,nx_) << x_terminal;
     }
-    buildConstaintInequality(A_constraint, b_constraint);
+    buildConstraintInequality(A_constraint, b_constraint);
     f = -H*f_ref;
 }
 
-// Solve the MPC problem
-vector_t MPC::solve(const vector_t& x0) {
+void MPC::initialize()
+{
     instance.objective_matrix = H;
     instance.objective_vector.resize(nvar_);
     instance.objective_vector << f;
-
-    SparseMatrix<double> constraints(dynamics_A.rows() + constraint_A.rows(), nvar_);
-    vector_t lb, ub;
+    constraints.resize(dynamics_A.rows() + constraint_A.rows(), nvar_);
     lb.resize(dynamics_A.rows() + constraint_A.rows());
     ub.resize(dynamics_A.rows() + constraint_A.rows());
     lb.setZero();
     ub.setZero();
-
-    dynamics_b_lb.segment(0,nx_) = x0;
-    dynamics_b_ub.segment(0,nx_) = x0;
-
     lb << dynamics_b_lb, constraint_b;
     ub << dynamics_b_ub, std::numeric_limits<double>::infinity() * vector_t::Ones(constraint_b.size());
+
     for (int i = 0; i < dynamics_A.rows(); i++) {
         for (int j = 0; j < nvar_; j++) {
             constraints.insert(i, j) = dynamics_A.coeff(i, j);
@@ -195,6 +196,7 @@ vector_t MPC::solve(const vector_t& x0) {
             constraints.insert(i + dynamics_A.rows(), j) = constraint_A(i, j);
         }
     }
+
     instance.constraint_matrix = constraints;
     instance.lower_bounds.resize(lb.size());
     instance.upper_bounds.resize(lb.size());
@@ -204,6 +206,37 @@ vector_t MPC::solve(const vector_t& x0) {
     instance.upper_bounds << ub;
 
     auto status = solver.Init(instance, settings);
+
+}
+
+void MPC::updateConstraints(const vector_t& x0)
+{
+    dynamics_b_lb.segment(0,nx_) = x0;
+    dynamics_b_ub.segment(0,nx_) = x0;
+
+    lb.segment(0,nx_) = x0;
+    ub.segment(0,nx_) = x0;
+    lb.segment(dynamics_b_lb.size(), constraint_b.size()) << constraint_b;
+
+    for (int i = 0; i < constraint_A.rows(); i++) {
+        for (int j = 0; j < nx_*p.N; j++) {
+            constraints.coeffRef(i + dynamics_A.rows(), j) = constraint_A(i, j);
+        }
+    }
+}
+
+void MPC::updateCost()
+{
+    auto status = solver.SetObjectiveVector(f);
+}
+
+// Solve the MPC problem
+vector_t MPC::solve(const vector_t& x0) {
+
+    updateConstraints(x0);
+    auto status1 = solver.UpdateConstraintMatrix(constraints);
+    auto status2 = solver.SetBounds(lb, ub);
+    
     OsqpExitCode exit_code = solver.Solve();
     return solver.primal_solution();
 }

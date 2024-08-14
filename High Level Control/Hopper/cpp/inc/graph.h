@@ -1,3 +1,4 @@
+#pragma once 
 #include "Types.h"
 
 #include "osqp++.h"
@@ -8,7 +9,7 @@
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/copy.hpp>
 
-const double distance_tol = 0.25;
+const double distance_tol = 0.5;
 const double viol_tol = 0.25;
 
 using namespace osqp;
@@ -16,6 +17,24 @@ using namespace boost;
 using ::Eigen::SparseMatrix;
 using ::Eigen::Triplet;
 using ::Eigen::VectorXd;
+
+class GraphQP
+{
+public:
+    GraphQP();
+
+    SparseMatrix<double> constraint_matrix;
+    vector_t lb, ub;
+
+    void setupQP(OsqpInstance& instance, const std::vector<matrix_t> vertices, const Obstacle obstacle);
+    int initializeQP(OsqpSolver &solver, OsqpInstance instance, OsqpSettings settings);
+    int solveQP(OsqpSolver &solver);
+
+    void buildConstraintMatrix(Obstacle obstacle,
+                            const int num_pts, const int num_obstacle_faces, const std::vector<matrix_t> vertices);
+    void updateConstraints(OsqpSolver &solver, Obstacle obstacle,
+                            const int num_pts, const int num_obstacle_faces, const std::vector<matrix_t> vertices);
+};
 
 const double kInfinity = std::numeric_limits<double>::infinity();
 
@@ -67,7 +86,3 @@ void solveGraph(std::vector<vector_4t> points, vector_4t starting_loc, vector_4t
     int &starting_ind, int& ending_ind, Graph g, std::vector<double> d, std::vector<Vertex>& p);
 std::vector<matrix_t> getReachableVertices(const std::vector<vector_4t> points);
 
-
-void setupQP(OsqpInstance& instance, const std::vector<matrix_t> vertices, const Obstacle obstacle);
-int initializeQP(OsqpSolver &solver, OsqpInstance instance, OsqpSettings settings);
-int solveQP(OsqpSolver &solver);
