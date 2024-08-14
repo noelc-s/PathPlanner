@@ -27,6 +27,7 @@ public:
     vector_t lb, ub;
 
     MPC(const int nx, const int nu, const MPC_Params loaded_p);
+    void setBez(matrix_t Bez);
     void buildDynamicEquality();
     void buildConstraintInequality(const std::vector<matrix_t> A_constraint, const std::vector<vector_t> b_constraint);
     void buildCost();
@@ -43,6 +44,7 @@ private:
     int nx_, nu_, nvar_;
     matrix_t Ad_;         // State transition matrix
     matrix_t Bd_;         // Control input matrix
+    matrix_t Bez_;
     SparseMatrix<double> SparseIdentity;
     SparseMatrix<double> dynamics_A;
     matrix_t constraint_A;

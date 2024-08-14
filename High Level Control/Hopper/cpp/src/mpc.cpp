@@ -35,7 +35,7 @@ MPC::MPC_Params loadParams()
 {
     MPC::MPC_Params p;
     p.N = 50;
-    p.dt = .2;
+    p.dt = 1;
     p.SQP_iter = 1;
     p.stateScaling.resize(4);
     p.stateScaling << 1,1,1,1;
@@ -87,19 +87,41 @@ void MPC::buildConstraintInequality(const std::vector<matrix_t> A_constraint, co
 
     int total_rows = std::accumulate(A_constraint.begin(), A_constraint.end(), 0, 
                                  [](int sum, const matrix_t& mat) { return sum + mat.rows(); });
-    constraint_A.resize(total_rows, nx_*p.N);
-    constraint_b.resize(total_rows);
+    constraint_A.resize(4*total_rows, nx_*p.N); // constrain x_k and x_kp1 except for last point
+    constraint_b.resize(4*total_rows);
     constraint_A.setZero();
     constraint_b.setZero();
     int row = 0;
-    for (int i = 0; i < num_constraints; i++) {
-        for (int j = 0; j < A_constraint[i].rows(); j++) {
-            for (int k = 0; k < nx_; k++) {
-                constraint_A(row, i*nx_ + k) = A_constraint[i](j, k);
-            }
-            constraint_b(row++) = b_constraint[i](j);
-        }
+    for (int i = 0; i < num_constraints-1; i++) {
+        // constrain over all control points
+        // v_0 = x_k
+        constraint_A.block(row, i*nx_, A_constraint[i].rows(), nx_) = A_constraint[i]*Bez_.block(0,0,nx_,nx_);
+        constraint_A.block(row, (i+1)*nx_, A_constraint[i].rows(), nx_) = A_constraint[i]*Bez_.block(0,nx_,nx_,nx_);
+        constraint_b.segment(row,A_constraint[i].rows()) = b_constraint[i];
+        row += A_constraint[i].rows();
+
+        // v_1
+        constraint_A.block(row, i*nx_, A_constraint[i].rows(), nx_) = A_constraint[i]*Bez_.block(nx_,0,nx_,nx_);
+        constraint_A.block(row, (i+1)*nx_, A_constraint[i].rows(), nx_) = A_constraint[i]*Bez_.block(nx_,nx_,nx_,nx_);
+        constraint_b.segment(row,A_constraint[i].rows()) = b_constraint[i];
+        row += A_constraint[i].rows();
+
+        // v_2
+        constraint_A.block(row, i*nx_, A_constraint[i].rows(), nx_) = A_constraint[i]*Bez_.block(2*nx_,0,nx_,nx_);
+        constraint_A.block(row, (i+1)*nx_, A_constraint[i].rows(), nx_) = A_constraint[i]*Bez_.block(2*nx_,nx_,nx_,nx_);
+        constraint_b.segment(row,A_constraint[i].rows()) = b_constraint[i];
+        row += A_constraint[i].rows();
+
+        // v_3 = x_kp1
+        constraint_A.block(row, i*nx_, A_constraint[i].rows(), nx_) = A_constraint[i]*Bez_.block(3*nx_,0,nx_,nx_);
+        constraint_A.block(row, (i+1)*nx_, A_constraint[i].rows(), nx_) = A_constraint[i]*Bez_.block(3*nx_,nx_,nx_,nx_);
+        constraint_b.segment(row,A_constraint[i].rows()) = b_constraint[i];
+        row += A_constraint[i].rows();
     }
+}
+
+void MPC::setBez(matrix_t Bez) {
+    Bez_ = Bez;
 }
 
 void MPC::buildCost()

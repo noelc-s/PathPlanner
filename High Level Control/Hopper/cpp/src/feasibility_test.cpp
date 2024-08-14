@@ -9,6 +9,8 @@
 #include "../inc/mpc.h"
 #include "../inc/utils.h"
 
+#include "Bezier.h"
+
 #include <random>
 
 int main()
@@ -41,12 +43,15 @@ int main()
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis_x(-1, 1);
     std::uniform_real_distribution<> dis_y(-2, 2);
+    std::uniform_real_distribution<> dist_freq(1,3);
+    std::vector<double> freq;
 
     double x_rand = dis_x(gen);
     double y_rand = dis_y(gen);
     obstacle.b_obstacle << 0.5 + x_rand, 0.5 - x_rand, 0.5 + y_rand, 0.5 - y_rand;
     b_obs.push_back(obstacle.b_obstacle);
     obstacles.push_back(obstacle);
+    freq.push_back(dist_freq(gen));
     graph_file << "Obstacle_A{" << 1 << "}=[" << std::endl;
     graph_file << obstacle.A_obstacle << std::endl;
     graph_file << "];" << std::endl;
@@ -59,6 +64,7 @@ int main()
     obstacle.b_obstacle << 0.5 + x_rand, 0.5 - x_rand, 0.5 + y_rand, 0.5 - y_rand;
     b_obs.push_back(obstacle.b_obstacle);
     obstacles.push_back(obstacle);
+    freq.push_back(dist_freq(gen));
     graph_file << "Obstacle_A{" << 2 << "}=[" << std::endl;
     graph_file << obstacle.A_obstacle << std::endl;
     graph_file << "];" << std::endl;
@@ -71,6 +77,7 @@ int main()
     obstacle.b_obstacle << 0.5 + x_rand, 0.5 - x_rand, 0.5 + y_rand, 0.5 - y_rand;
     b_obs.push_back(obstacle.b_obstacle);
     obstacles.push_back(obstacle);
+    freq.push_back(dist_freq(gen));
     graph_file << "Obstacle_A{" << 3 << "}=[" << std::endl;
     graph_file << obstacle.A_obstacle << std::endl;
     graph_file << "];" << std::endl;
@@ -105,6 +112,28 @@ int main()
     mpc.buildDynamicEquality();
     mpc.buildCost();
 
+    int order = 3;
+    int gamma = 2;
+    double tau = mpc.p.dt;
+    Bezier B = Bezier(order,gamma,tau);
+    std::cout << "Bezier H matrix: " << B.H << std::endl << std::endl;
+    matrix_t D = B.D_matrix(order, gamma);
+    std::cout << "Bezier D inv matrix: " << D.inverse() << std::endl << std::endl;
+    vector_t xi(4);
+    xi << -1,0, 1, 1;
+    std::cout << "xi: " << xi.transpose() << std::endl;
+    vector_t P =  xi.transpose()*D.inverse();
+    std::cout << "P: " << P.transpose() << std::endl;
+    std::cout << "dP: " << P.transpose()*B.H << std::endl;
+
+    int m = 2;
+    matrix_t H_vec = B.H_vec(B.H, m, order, gamma, gamma-1);
+    matrix_t D_nT_vec = B.inv_DT_vec(m, order, gamma);
+    std::cout << "H_vec: " << H_vec << std::endl;
+    matrix_t Bez = H_vec * D_nT_vec;
+    std::cout << "Bez: " << Bez << std::endl;
+    mpc.setBez(Bez);
+
     const double num_traj = 100;
     for (int i = 0; i < num_traj; i++)
     {
@@ -115,8 +144,8 @@ int main()
         // }
         output_file << "Obs{" << i + 1 << "}=[" << std::endl;
         for (int o = 0; o < obstacles.size(); o++) {
-            double x_add = sin(2 * 3.14 * i / num_traj);
-            double y_add = cos(2 * 3.14 * i / num_traj);
+            double x_add = 0*cos(2 * 3.14 * freq[o] * i / num_traj);
+            double y_add = 2*sin(2 * 3.14 * freq[o] * i / num_traj);
             output_file << x_add << ", " << y_add << std::endl;
             obstacles[o].b_obstacle << b_obs[o](0) + x_add, b_obs[o](1) - x_add, b_obs[o](2) + y_add, b_obs[o](3) - y_add;
         }

@@ -8,6 +8,20 @@ num_opt = 16+4;
 
 plot_nodes = false;
 
+%%% Beizer
+dt = 0.2;
+gamma = 2;
+order = 2*gamma-1; % minimal curve
+m = 1;
+
+H = Bezier.H(order, dt);
+D = Bezier.D(gamma,order, dt);
+Z = Bezier.Z(order, dt);
+H_vec = Bezier.H_vec(H, m, order, gamma, gamma-1);
+B = H_vec*inv(D)';
+tau = linspace(0,dt);
+%%%
+
 clf;
 hold on
 for i = 1:(size(Points,1))
@@ -19,7 +33,7 @@ for i = 1:(size(Points,1))
     % d = Sol(((i-1)*num_opt+1):i*num_opt,:);
     % p(i,:) = d(1:dim_per_sample)'*v{i};
     % viol = norm(d(dim_per_sample+1:end));
-    % 
+    %
     % if viol < 0.25
     %     if plot_nodes
     %         patch(v{i}(:,1),v{i}(:,2),'r','facealpha',0.001);
@@ -37,7 +51,7 @@ if plot_nodes
     scatter(center(:,1),center(:,2),100,color,'filled');
     % scatter(p(:,1),p(:,2),10,color,'filled');
 end
-% 
+%
 % if plot_nodes
 %     x_edges = [];
 %     y_edges = [];
@@ -60,43 +74,53 @@ x_ind = 1:mpc_N*4;
 u_ind = (mpc_N*4+1):(mpc_N*4+(mpc_N-1)*2);
 
 while(1)
-for pt = 1:size(Path,2)
-    tic
-    delete(O_p)
-    delete(path_plot);
-    delete(mpc_plot);
-    delete(start_v);
-    delete(end_v);
-    P = Path{pt};
-    path_x = [center(P(1),1)];
-    path_y = [center(P(1),2)];
-    for i = 1:size(P,1)-1
-        path_x = [path_x center(P(i+1),1)];
-        path_y = [path_y center(P(i+1),2)];
-    end
-    path_plot = plot(path_x, path_y,'r','linewidth',1);
-    start_v = scatter(center(P(1),1),center(P(1),2),100,'b','filled');
-    end_v = scatter(center(P(end),1),center(P(end),2),100,'b','filled');
-    num_traj = 10;
-    mag = 1.0;
-    for obs = 1:length(Obstacle_A)
-    nom = lcon2vert(Obstacle_A{obs}(:,1:2), Obstacle_b{obs});
-    inds = convhull(nom);
-    nom = nom(inds,:)';
-    Obstacle = [nom(1,:) + Obs{pt}(obs,1); nom(2,:) + Obs{pt}(obs,2)];
-    O_p(obs) = patch(Obstacle(1,:),Obstacle(2,:),'r','facealpha',0.1);
-    end
-    
+    for pt = 1:size(Path,2)
+        tic
+        delete(O_p)
+        delete(path_plot);
+        delete(mpc_plot);
+        delete(start_v);
+        delete(end_v);
+        P = Path{pt};
+        path_x = [center(P(1),1)];
+        path_y = [center(P(1),2)];
+        for i = 1:size(P,1)-1
+            path_x = [path_x center(P(i+1),1)];
+            path_y = [path_y center(P(i+1),2)];
+        end
+        path_plot = plot(path_x, path_y,'r','linewidth',1);
+        start_v = scatter(center(P(1),1),center(P(1),2),100,'b','filled');
+        end_v = scatter(center(P(end),1),center(P(end),2),100,'b','filled');
+        num_traj = 10;
+        mag = 1.0;
+        for obs = 1:length(Obstacle_A) 
+            nom = lcon2vert(Obstacle_A{obs}(:,1:2), Obstacle_b{obs});
+            inds = convhull(nom);
+            nom = nom(inds,:)';
+            Obstacle = [nom(1,:) + Obs{pt}(obs,1); nom(2,:) + Obs{pt}(obs,2)];
+            O_p(obs) = patch(Obstacle(1,:),Obstacle(2,:),'r','facealpha',0.1);
+        end
 
-    x = MPC{pt}(x_ind);
-    u = MPC{pt}(u_ind);
-    x = reshape(x, 4, [])';
-    u = reshape(u, 2, [])';
-    
-    mpc_plot = plot(x(:,1),x(:,2),'bo-','linewidth',5);
 
-    drawnow
-    val = toc;
-    % pause(0.2 - val);
-end
+        x = MPC{pt}(x_ind);
+        u = MPC{pt}(u_ind);
+        x = reshape(x, 4, [])';
+        u = reshape(u, 2, [])';
+
+        Bezier_x = [];
+        Bezier_y = [];
+        for i = 1:size(x,1)-1
+            Xi_x = B*[x(i,[1 3])'; x(i+1,[1 3])'];
+            Xi_y = B*[x(i,[2 4])'; x(i+1,[2 4])'];
+            Bezier_x = [Bezier_x reshape(Xi_x,2,[])*Z(tau)];
+            Bezier_y = [Bezier_y reshape(Xi_y,2,[])*Z(tau)];
+        end
+
+        mpc_plot(1) = plot(x(:,1),x(:,2),'bo','linewidth',5);
+        mpc_plot(2) = plot(Bezier_x(1,:),Bezier_y(1,:),'b','linewidth',5);
+
+        drawnow
+        val = toc;
+        pause(0.2 - val);
+    end
 end
