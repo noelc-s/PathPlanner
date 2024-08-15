@@ -60,13 +60,12 @@ Graph buildGraph(std::vector<vector_4t> points)
     return g;
 }
 
-std::vector<matrix_t> getReachableVertices(const std::vector<vector_4t> points)
+std::vector<matrix_t> getVerticesOfBezPoly(const std::vector<vector_4t> points)
 {
     const int num_pts = points.size();
     const int num_reachable_pts = pow(2,4);
 
     std::vector<matrix_t> vertices;
-    const double dim_of_R = .3;
 
     for (int i = 0; i < num_pts; i++)
     {
@@ -98,8 +97,6 @@ GraphQP::GraphQP()
 {
 
 }
-
-
 
 void GraphQP::setupQP(OsqpInstance& instance, const std::vector<matrix_t> vertices, const Obstacle obstacle)
 {
@@ -252,13 +249,15 @@ int GraphQP::solveQP(OsqpSolver &solver)
     return 0;
 }
 
-void cutEdges(Graph &g, const int num_pts, const int num_reachable_pts, const int num_obstacle_faces, VectorXd optimal_solution)
+void cutEdges(Graph &g, const int num_pts, const std::vector<matrix_t> vertices, const int num_obstacle_faces, VectorXd optimal_solution)
 {
+    int dec_var_ind = 0;
     for (int i = 0; i < num_pts; i++) {
-        if (optimal_solution.segment(i*(num_reachable_pts+num_obstacle_faces)+num_reachable_pts,num_obstacle_faces).norm() < viol_tol)
+        if (optimal_solution.segment(dec_var_ind + vertices[i].cols(),num_obstacle_faces).norm() < viol_tol)
         {
             clear_vertex(i, g);
         }
+        dec_var_ind += vertices[i].cols() + num_obstacle_faces;
     }
 }
 

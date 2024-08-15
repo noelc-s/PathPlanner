@@ -7,6 +7,9 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "-O3 -pthread")
 
+set(bezier_DIR /home/noelcs/repos/BezierTubes/cpp)
+
+### OSQP
 find_package(osqp)
 if (NOT TARGET osqpstatic)  # This is what osqp-cpp looks for
     message(STATUS "osqpstatic target not found, checking osqp::osqpstatic...")
@@ -30,9 +33,27 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(osqp-cpp)
+###
 
-add_library(graph STATIC src/graph.cpp src/mpc.cpp)
-target_link_libraries(graph PUBLIC osqp-cpp)
+### Bezier Tubes
+add_library(bezier SHARED IMPORTED)
+set_property(TARGET bezier PROPERTY IMPORTED_LOCATION ${bezier_DIR}/build/libBEZIER.so)
+include_directories(bezier INTERFACE ${bezier_DIR}/inc)
+####
+
+add_library(graph STATIC src/graph.cpp src/mpc.cpp src/utils.cpp)
+target_link_libraries(graph PUBLIC osqp-cpp bezier)
 
 add_executable(path_planning src/feasibility_test.cpp)
 target_link_libraries(path_planning PUBLIC graph)
+
+add_executable(integrator src/integrator_test.cpp)
+target_link_libraries(integrator PUBLIC graph)
+
+# For some reason cuda cannot compile with gcc > 8
+# export CC=/usr/bin/gcc-8
+# export CXX=/usr/bin/g++-8
+
+find_package(CUDA REQUIRED)
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_30")
+cuda_add_executable(cuda src/project_onto_obst.cu)

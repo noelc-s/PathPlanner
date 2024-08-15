@@ -35,7 +35,7 @@ MPC::MPC_Params loadParams()
 {
     MPC::MPC_Params p;
     p.N = 50;
-    p.dt = 1;
+    p.dt = .2;
     p.SQP_iter = 1;
     p.stateScaling.resize(4);
     p.stateScaling << 1,1,1,1;
@@ -153,6 +153,16 @@ void MPC::buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles,
     std::vector<vector_t> b_constraint;
     vector_t f_ref(nvar_);
     f_ref.setZero();
+
+    // TODO: remove adj point dependency
+    // std::vector<int> reachable_vert_ind(vertices.size());
+    // // Lambda function to compute mat.cols() + constant
+    // auto computeColsPlusSlackParams = [constant](const matrix_t& mat) {
+    //     return mat.cols() + num_obstacle_faces;
+    // };
+    // // Use std::transform to apply the lambda function
+    // std::transform(vertices.begin(), vertices.end(), reachable_vert_ind.begin(), computeColsPlusSlackParams);
+
     for (int i = 0; i < optimalInd.size(); i++) {
         // Have to traverse the list backwards
         const int vertex_ind = optimalInd[optimalInd.size()-1-i];

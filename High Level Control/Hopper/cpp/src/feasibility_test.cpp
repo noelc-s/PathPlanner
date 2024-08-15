@@ -87,12 +87,6 @@ int main()
 
     std::vector<vector_4t> points = generateUniformPoints(num_pts, -3, 3, -3, 3, 0, 0, 0, 0);
 
-    Graph graph = buildGraph(points);
-    std::vector<matrix_t> vertices = getReachableVertices(points);
-    // Log graph
-    log(points, graph_file, "Points");
-    log(vertices, graph_file, "ReachableVertices");
-
     // Setup the OSQP instance
     OsqpInstance graphInstance;
     OsqpSolver graphSolver;
@@ -103,10 +97,6 @@ int main()
     Timer timer;
     GraphQP graphQP;
 
-    timer.start();
-    graphQP.setupQP(graphInstance, vertices, obstacles[0]);
-    graphQP.initializeQP(graphSolver, graphInstance, graphSettings);
-
     MPC::MPC_Params mpc_params = loadParams();
     MPC mpc(4, 2, mpc_params);
     mpc.buildDynamicEquality();
@@ -115,33 +105,63 @@ int main()
     int order = 3;
     int gamma = 2;
     double tau = mpc.p.dt;
-    Bezier B = Bezier(order,gamma,tau);
-    std::cout << "Bezier H matrix: " << B.H << std::endl << std::endl;
-    matrix_t D = B.D_matrix(order, gamma);
-    std::cout << "Bezier D inv matrix: " << D.inverse() << std::endl << std::endl;
-    vector_t xi(4);
-    xi << -1,0, 1, 1;
-    std::cout << "xi: " << xi.transpose() << std::endl;
-    vector_t P =  xi.transpose()*D.inverse();
-    std::cout << "P: " << P.transpose() << std::endl;
-    std::cout << "dP: " << P.transpose()*B.H << std::endl;
-
     int m = 2;
+    Bezier B = Bezier(order,gamma,tau);
     matrix_t H_vec = B.H_vec(B.H, m, order, gamma, gamma-1);
     matrix_t D_nT_vec = B.inv_DT_vec(m, order, gamma);
-    std::cout << "H_vec: " << H_vec << std::endl;
     matrix_t Bez = H_vec * D_nT_vec;
-    std::cout << "Bez: " << Bez << std::endl;
     mpc.setBez(Bez);
+
+    // Right now this is done independently for x and y!
+    matrix_t A_x, H, xbar, f_xbar, g_xbar;
+    vector_t b_x, K;
+    std::vector<matrix_t> Q;
+    int m_ind = 1;
+    scalar_t Lf = 0;
+    scalar_t Lg = 1;
+    scalar_t e_bar = 0;
+    scalar_t u_max = 5;
+    A_x.resize(4,2);
+    A_x << 1,     0,
+            -1,     0,
+            0 ,    1,
+            0 ,   -1;
+    b_x.resize(4);
+    // TODO: change this when the state space changes
+    b_x << 3,3,3,3;
+    H = B.H_matrix(order);
+    xbar.resize(2,1);
+    xbar << 0,0;
+    f_xbar.resize(1,1);
+    f_xbar << 0;
+    g_xbar.resize(1,1);
+    g_xbar << 1;
+    Q.push_back(matrix_t::Identity(4,4));
+    K.resize(2);
+    K << -1,-1;
+    matrix_t F, G;
+    B.F_G(A_x, b_x, H, m_ind, xbar, f_xbar, g_xbar, gamma, Q, 
+                    Lg, Lf, e_bar, K, u_max,
+                    F, G);
+    auto F_G = [&B, A_x, b_x, H, m_ind,gamma, Q, Lg, Lf, e_bar, K, u_max]
+                (matrix_t xbar, matrix_t f_xbar, matrix_t g_xbar, matrix_t &F, matrix_t &G)
+                {B.F_G(A_x, b_x, H, m_ind, xbar, f_xbar, g_xbar, gamma, Q, Lg, Lf, e_bar, K, u_max, F, G);};
+
+    // Graph graph = buildGraph(points);
+    Graph graph = buildGraph(points, F_G);
+    std::vector<matrix_t> vertices = getVerticesOfBezPoly(points);
+
+    // Log graph
+    log(points, graph_file, "Points");
+    log(vertices, graph_file, "ReachableVertices");
+
+    graphQP.setupQP(graphInstance, vertices, obstacles[0]);
+    graphQP.initializeQP(graphSolver, graphInstance, graphSettings);
 
     const double num_traj = 100;
     for (int i = 0; i < num_traj; i++)
     {
         std::cout << "Trajectory percentage: " << (i+1)/num_traj << std::endl;
-        // for (int o = 0; o < obstacles.size(); o++) {
-        //     obstacles[o].b_obstacle << b_obs[o](0), b_obs[o](1),
-        //         b_obs[o](2) + 1.0 * cos(2 * 3.14 * i / num_traj), b_obs[o](3) - 1.0 * cos(2 * 3.14 * i / num_traj);
-        // }
         output_file << "Obs{" << i + 1 << "}=[" << std::endl;
         for (int o = 0; o < obstacles.size(); o++) {
             double x_add = 0*cos(2 * 3.14 * freq[o] * i / num_traj);
@@ -164,7 +184,7 @@ int main()
             double optimal_objective = graphSolver.objective_value();
             VectorXd optimal_solution = graphSolver.primal_solution();
 
-            cutEdges(cut_graph, num_pts, num_adjacent_pts, obstacle.b_obstacle.size(), optimal_solution);
+            cutEdges(cut_graph, num_pts, vertices, obstacle.b_obstacle.size(), optimal_solution);
             optimalSolutions.push_back(optimal_solution);
         }
 
@@ -187,7 +207,7 @@ int main()
         // output_file << "];" << std::endl;
 
         // output_file << "Sol = [" << std::endl;
-        // output_file << optimal_solution << std::endl;
+        // output_file << optimalSolutions[0] << std::endl;
         // output_file << "];" << std::endl;
 
         output_file << "Path{" << i + 1 << "}=[" << std::endl;
@@ -221,6 +241,8 @@ int main()
         output_file << "MPC{" << i + 1 << "}=[" << std::endl;
         output_file << sol << std::endl;
         output_file << "];" << std::endl;
+
+        // starting_loc << sol.segment(4,4);
     }
 
     output_file.close();

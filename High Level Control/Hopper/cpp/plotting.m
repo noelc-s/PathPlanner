@@ -29,38 +29,41 @@ for i = 1:(size(Points,1))
     pt = Points(i,:);
     center(i,:) = pt;
     v{i} = d;
+    
+    if plot_nodes
+        d = Sol(((i-1)*num_opt+1):i*num_opt,:);
+        p(i,:) = d(1:dim_per_sample)'*v{i};
+        viol = norm(d(dim_per_sample+1:end));
 
-    % d = Sol(((i-1)*num_opt+1):i*num_opt,:);
-    % p(i,:) = d(1:dim_per_sample)'*v{i};
-    % viol = norm(d(dim_per_sample+1:end));
-    %
-    % if viol < 0.25
-    %     if plot_nodes
-    %         patch(v{i}(:,1),v{i}(:,2),'r','facealpha',0.001);
-    %     end
-    %     color(i,:) = [1 0 0];
-    % else
-    %     if plot_nodes
-    %         patch(v{i}(:,1),v{i}(:,2),'b','facealpha',0.025);
-    %     end
-    %     color(i,:) = [0 1 0];
-    % end
-    color(i,:) = [0 0 1];
+        if viol < 0.25
+            if plot_nodes
+                patch(v{i}(:,1),v{i}(:,2),'r','facealpha',0.001);
+            end
+            color(i,:) = [1 0 0];
+        else
+            if plot_nodes
+                patch(v{i}(:,1),v{i}(:,2),'b','facealpha',0.025);
+            end
+            color(i,:) = [0 1 0];
+        end
+    else
+        color(i,:) = [0 0 1];
+    end
 end
 if plot_nodes
     scatter(center(:,1),center(:,2),100,color,'filled');
     % scatter(p(:,1),p(:,2),10,color,'filled');
 end
-%
-% if plot_nodes
-%     x_edges = [];
-%     y_edges = [];
-%     for i = 1:size(Edges,1)
-%         x_edges = [x_edges [center(Edges(i,1)+1,1),center(Edges(i,2)+1,1)] NaN];
-%         y_edges = [y_edges [center(Edges(i,1)+1,2),center(Edges(i,2)+1,2)] NaN];
-%     end
-%     plot(x_edges, y_edges,'k');
-% end
+
+if plot_nodes
+    x_edges = [];
+    y_edges = [];
+    for i = 1:size(Edges,1)
+        x_edges = [x_edges [center(Edges(i,1)+1,1),center(Edges(i,2)+1,1)] NaN];
+        y_edges = [y_edges [center(Edges(i,1)+1,2),center(Edges(i,2)+1,2)] NaN];
+    end
+    plot(x_edges, y_edges,'k');
+end
 
 O_p = [];
 path_plot = [];
@@ -116,11 +119,11 @@ while(1)
             Bezier_y = [Bezier_y reshape(Xi_y,2,[])*Z(tau)];
         end
 
-        mpc_plot(1) = plot(x(:,1),x(:,2),'bo','linewidth',5);
+        % mpc_plot(1) = plot(x(:,1),x(:,2),'bo','linewidth',5);
         mpc_plot(2) = plot(Bezier_x(1,:),Bezier_y(1,:),'b','linewidth',5);
 
         drawnow
         val = toc;
-        pause(0.2 - val);
+        pause(0.2  - val);
     end
 end

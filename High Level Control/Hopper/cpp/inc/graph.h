@@ -11,6 +11,7 @@
 
 const double distance_tol = 0.5;
 const double viol_tol = 0.25;
+const double dim_of_R = .3;
 
 using namespace osqp;
 using namespace boost;
@@ -81,8 +82,62 @@ double get_weight(vector_4t p1, vector_4t p2);
 
 std::ofstream open_log_file(std::string filename);
 Graph buildGraph(std::vector<vector_4t> points);
-void cutEdges(Graph &g, const int num_pts, const int num_adjacent_pts, const int num_obstacle_faces, VectorXd optimal_solution);
+void cutEdges(Graph &g, const int num_pts, const std::vector<matrix_t> vertices, const int num_obstacle_faces, VectorXd optimal_solution);
 void solveGraph(std::vector<vector_4t> points, vector_4t starting_loc, vector_4t ending_loc,
     int &starting_ind, int& ending_ind, Graph g, std::vector<double> d, std::vector<Vertex>& p);
-std::vector<matrix_t> getReachableVertices(const std::vector<vector_4t> points);
+std::vector<matrix_t> getVerticesOfBezPoly(const std::vector<vector_4t> points);
+
+template<typename Func>
+Graph buildGraph(std::vector<vector_4t> points, Func&& F_G)
+{
+    const int num_pts = points.size();
+    Graph g(num_pts);
+    for (int i = 0; i < num_pts; ++i)
+    {
+        for (int j = 0; j < num_pts; ++j)
+        {
+            if (i != j && adjacent(points[i], points[j]))
+            {
+                add_edge(i, j, get_weight(points[i], points[j]), g);
+            }
+        }
+    }
+    return g;
+}
+
+// does there exist and edge from p1 to p2.
+template<typename Func>
+bool adjacent(vector_4t p1, vector_4t p2, Func&& F_G) {
+    bool connected = true; //innocent until proven guilty
+
+    matrix_t xbar_x(2,1);
+    matrix_t xbar_y(2,1);
+    matrix_t x(4,1);
+    matrix_t y(4,1);
+    matrix_t f_xbar_x(1,1);
+    matrix_t f_xbar_y(1,1);
+    f_xbar_x.setZero();
+    f_xbar_y.setZero(); // double integrator has no nonlinearities.
+    matrix_t g_xbar_x(1,1);
+    matrix_t g_xbar_y(1,1);
+    g_xbar_x << 1;
+    g_xbar_y << 1;
+    matrix_t F, G;
+
+    x << p1(0), p1(2), p2(0), p2(2);
+    y << p1(1), p1(3), p2(1), p2(3);
+    xbar_x << p1(0), p1(2);
+    xbar_y << p1(1), p1(3);
+
+    F_G(xbar_x, f_xbar_x, g_xbar_x, F, G);
+    if (((F * x - G).array() > 0).any()) {
+        connected = false;
+    }
+    F_G(xbar_y, f_xbar_y, g_xbar_y, F, G);
+    if (((F * y - G).array() > 0).any()) {
+        connected = false;
+    }
+    return connected;
+
+}
 
