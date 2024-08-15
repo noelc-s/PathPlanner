@@ -41,10 +41,12 @@ set_property(TARGET bezier PROPERTY IMPORTED_LOCATION ${bezier_DIR}/build/libBEZ
 include_directories(bezier INTERFACE ${bezier_DIR}/inc)
 ####
 
-add_library(graph STATIC src/graph.cpp src/mpc.cpp src/utils.cpp)
-target_link_libraries(graph PUBLIC osqp-cpp bezier)
+find_package(yaml-cpp REQUIRED)
 
-add_executable(path_planning src/feasibility_test.cpp)
+add_library(graph STATIC src/graph.cpp src/mpc.cpp src/utils.cpp)
+target_link_libraries(graph PUBLIC osqp-cpp bezier yaml-cpp)
+
+add_executable(path_planning src/path_planning.cpp)
 target_link_libraries(path_planning PUBLIC graph)
 
 add_executable(integrator src/integrator_test.cpp)

@@ -4,10 +4,6 @@
 #include "osqp++.h"
 #include <random>
 #include <fstream>
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/dijkstra_shortest_paths.hpp>
-#include <boost/graph/copy.hpp>
 
 const double distance_tol = 0.5;
 const double viol_tol = 0.25;
@@ -39,9 +35,6 @@ public:
 
 const double kInfinity = std::numeric_limits<double>::infinity();
 
-typedef adjacency_list<vecS, vecS, directedS, no_property, property<edge_weight_t, double>> Graph;
-typedef graph_traits<Graph>::vertex_descriptor Vertex;
-
 template <class PredecessorMap>
 class record_predecessorsC : public dijkstra_visitor<>
 {
@@ -64,16 +57,7 @@ make_predecessor_recorder(PredecessorMap p) {
     return record_predecessorsC<PredecessorMap>(p);
 }
 
-template <typename Derived>
-void log(std::vector<Derived> data, std::ofstream& file, std::string name)
-{
-    file << name << " = [" << std::endl;
-    for (auto d : data)
-    {
-        file << d.transpose() << std::endl;
-    }
-    file << "];" << std::endl;
-}
+
 
 std::vector<vector_4t> generateUniformPoints(int n, double min_x, double max_x, double min_y, double max_y,
                                                     double min_dx, double max_dx, double min_dy, double max_dy);

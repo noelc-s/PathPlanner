@@ -106,7 +106,7 @@ void GraphQP::setupQP(OsqpInstance& instance, const std::vector<matrix_t> vertic
     const int total_adjacent_pts = std::accumulate(vertices.begin(), vertices.end(), 0, 
                                  [](int sum, const matrix_t& mat) { return sum + mat.cols(); });    
 
-    const int num_obstacle_faces = obstacle.b_obstacle.size();
+    const int num_obstacle_faces = obstacle.b.size();
     const int num_pts = vertices.size();
     
     SparseMatrix<double> objective_matrix(total_adjacent_pts + num_pts * num_obstacle_faces, 
@@ -165,7 +165,7 @@ void GraphQP::buildConstraintMatrix(Obstacle obstacle,
         for (int i = 0; i < num_reachable_pts; ++i)
         {
             matrix_t constraint(num_obstacle_faces, 1);
-            constraint << obstacle.A_obstacle * vertices[p].block(0, i, vertices[p].rows(), 1);
+            constraint << obstacle.A * vertices[p].block(0, i, vertices[p].rows(), 1);
             for (int j = 0; j < num_obstacle_faces; j++)
             {
                 tripletsA.emplace_back(constraint_index + 1 + num_reachable_pts + j, variable_index + i, constraint(j));
@@ -179,7 +179,7 @@ void GraphQP::buildConstraintMatrix(Obstacle obstacle,
         for (int j = 0; j < num_obstacle_faces; ++j)
         {
             lb[constraint_index + 1 + num_reachable_pts + j] = -kInfinity;
-            ub[constraint_index + 1 + num_reachable_pts + j] = obstacle.b_obstacle[j];
+            ub[constraint_index + 1 + num_reachable_pts + j] = obstacle.b[j];
         }
         constraint_index += 1 + num_reachable_pts + num_obstacle_faces;
         variable_index += num_reachable_pts + num_obstacle_faces;
@@ -206,7 +206,7 @@ void GraphQP::updateConstraints(OsqpSolver &solver, Obstacle obstacle,
         for (int i = 0; i < num_reachable_pts; ++i)
         {
             matrix_t constraint(num_obstacle_faces, 1);
-            constraint << obstacle.A_obstacle * vertices[p].block(0, i, vertices[p].rows(), 1);
+            constraint << obstacle.A * vertices[p].block(0, i, vertices[p].rows(), 1);
             for (int j = 0; j < num_obstacle_faces; j++)
             {
                 constraint_matrix.coeffRef(constraint_index + 1 + num_reachable_pts + j, variable_index + i) = constraint(j);
@@ -216,7 +216,7 @@ void GraphQP::updateConstraints(OsqpSolver &solver, Obstacle obstacle,
         for (int j = 0; j < num_obstacle_faces; ++j)
         {
             lb[constraint_index + 1 + num_reachable_pts + j] = -kInfinity;
-            ub[constraint_index + 1 + num_reachable_pts + j] = obstacle.b_obstacle[j];
+            ub[constraint_index + 1 + num_reachable_pts + j] = obstacle.b[j];
         }
         constraint_index += 1 + num_reachable_pts + num_obstacle_faces;
         variable_index += num_reachable_pts + num_obstacle_faces;

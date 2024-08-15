@@ -31,22 +31,6 @@ MPC::MPC(const int nx, const int nu, const MPC_Params loaded_p) : nx_(nx), nu_(n
     settings.polish = true;
 }
 
-MPC::MPC_Params loadParams()
-{
-    MPC::MPC_Params p;
-    p.N = 50;
-    p.dt = .2;
-    p.SQP_iter = 1;
-    p.stateScaling.resize(4);
-    p.stateScaling << 1,1,1,1;
-    p.inputScaling.resize(2);
-    p.inputScaling << .01,.01;
-    p.terminalScaling = 1;
-    p.tau_max = 10;
-
-    return p;
-}
-
 void MPC::buildDynamicEquality() {
     int offset = nx_;
     for (int i = 0; i < p.N-1; i++) {
@@ -143,7 +127,7 @@ void MPC::buildCost()
     f.setZero();
 }
 
-void MPC::buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles,
+vector_t MPC::buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles,
                     const int num_adjacent_pts,
                     const int num_obstacle_faces,
                     const std::vector<vector_t> optimalSolutions, const std::vector<int> optimalInd,
@@ -151,58 +135,62 @@ void MPC::buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles,
 {
     std::vector<matrix_t> A_constraint;
     std::vector<vector_t> b_constraint;
-    vector_t f_ref(nvar_);
-    f_ref.setZero();
 
-    // TODO: remove adj point dependency
-    // std::vector<int> reachable_vert_ind(vertices.size());
-    // // Lambda function to compute mat.cols() + constant
-    // auto computeColsPlusSlackParams = [constant](const matrix_t& mat) {
-    //     return mat.cols() + num_obstacle_faces;
-    // };
-    // // Use std::transform to apply the lambda function
-    // std::transform(vertices.begin(), vertices.end(), reachable_vert_ind.begin(), computeColsPlusSlackParams);
-
+    vector_t sol(p.N * nx_);
     for (int i = 0; i < optimalInd.size(); i++) {
         // Have to traverse the list backwards
         const int vertex_ind = optimalInd[optimalInd.size()-1-i];
-        // TODO: make this logic more sound or prove it
-        // min(max viol) over all obstacles
-        double min_violation = 1e5;
-        matrix_t A_obs(1,4);
-        vector_t b_obs(1);
-        for (int i = 0; i < optimalSolutions.size(); i++) {
-            vector_t optimal_solution = optimalSolutions[i];
-            Obstacle obstacle = obstacles[i];
-            vector_t violation = optimal_solution.segment(vertex_ind*(num_adjacent_pts+num_obstacle_faces)+num_adjacent_pts,num_obstacle_faces);
-            Eigen::Index maxIndex;
-            double violation_mag = violation.maxCoeff(&maxIndex);
-            if (violation_mag < min_violation)
-            {
-                A_obs << obstacle.A_obstacle.row(maxIndex);
-                b_obs << obstacle.b_obstacle.segment(maxIndex,1);
-                min_violation = violation_mag;
-            }
-        }
-        A_constraint.push_back(A_obs);
-        b_constraint.push_back(b_obs);
-        f_ref.segment(i*nx_,nx_) << optimalPath[optimalInd.size()-1-i];
-        // f_ref.segment(i*nx_,nx_) << optimalPath.front();
+        vector_t x = optimalPath[optimalInd.size()-1-i];
+        sol.segment(i*nx_,nx_) << x;
     }
-    matrix_t A_term(1,4);
-    vector_t b_term(1);
-    A_term << 0,0,0,0;
-    b_term << -1;
     vector_t x_terminal;
     x_terminal = optimalPath.front();
     for (int i = optimalInd.size(); i < p.N; i++) 
     {    
-        A_constraint.push_back(A_term);
-        b_constraint.push_back(b_term);
-        f_ref.segment(i*nx_,nx_) << x_terminal;
+        sol.segment(i*nx_,nx_) << x_terminal;
     }
-    buildConstraintInequality(A_constraint, b_constraint);
-    f = -H*f_ref;
+
+    // for (int i = 0; i < optimalInd.size(); i++) {
+    //     // Have to traverse the list backwards
+    //     const int vertex_ind = optimalInd[optimalInd.size()-1-i];
+
+    //     double min_violation = 1e5;
+    //     matrix_t A_obs(1,4);
+    //     vector_t b_obs(1);
+    //     for (int i = 0; i < optimalSolutions.size(); i++) {
+    //         vector_t optimal_solution = optimalSolutions[i];
+    //         Obstacle obstacle = obstacles[i];
+    //         vector_t violation = optimal_solution.segment(vertex_ind*(num_adjacent_pts+num_obstacle_faces)+num_adjacent_pts,num_obstacle_faces);
+    //         Eigen::Index maxIndex;
+    //         double violation_mag = violation.maxCoeff(&maxIndex);
+    //         if (violation_mag < min_violation)
+    //         {
+    //             A_obs << obstacle.A.row(maxIndex);
+    //             b_obs << obstacle.b.segment(maxIndex,1);
+    //             min_violation = violation_mag;
+    //         }
+    //     }
+    //     A_constraint.push_back(A_obs);
+    //     b_constraint.push_back(b_obs);
+    //     f_ref.segment(i*nx_,nx_) << optimalPath[optimalInd.size()-1-i];
+    //     // f_ref.segment(i*nx_,nx_) << optimalPath.front();
+    // }
+    // matrix_t A_term(1,4);
+    // vector_t b_term(1);
+    // A_term << 0,0,0,0;
+    // b_term << -1;
+    // vector_t x_terminal;
+    // x_terminal = optimalPath.front();
+    // for (int i = optimalInd.size(); i < p.N; i++) 
+    // {    
+    //     A_constraint.push_back(A_term);
+    //     b_constraint.push_back(b_term);
+    //     f_ref.segment(i*nx_,nx_) << x_terminal;
+    // }
+    // buildConstraintInequality(A_constraint, b_constraint);
+
+    updateConstraintsSQP(obstacles, sol);
+    return sol;
 }
 
 void MPC::initialize()
@@ -255,6 +243,58 @@ void MPC::updateConstraints(const vector_t& x0)
             constraints.coeffRef(i + dynamics_A.rows(), j) = constraint_A(i, j);
         }
     }
+}
+
+void MPC::updateConstraintsSQP(std::vector<Obstacle> obstacles, vector_t sol) {
+    std::vector<matrix_t> A_constraint;
+    std::vector<vector_t> b_constraint;
+    vector_t f_ref(nvar_);
+    f_ref.setZero();
+    
+    for (int i = 0; i < p.N; i++) {
+        if (p.use_previous_reference) {
+            f_ref.segment(i*nx_,nx_) << sol.segment(i*nx_,nx_);
+        } else {
+            f_ref.segment(i*nx_,nx_) << sol.segment((p.N-1)*nx_,nx_);
+        }
+        matrix_t A(1,4);
+        vector_t b(1);
+        double max_viol = 1e3;
+        for (auto obstacle : obstacles) {
+            vector_t x(2);
+            x << sol.segment(nx_*i,2);
+            int closest_point = -1;
+            double closest_dist = 1e3;
+            for (int j = 0; j < obstacle.v.rows(); j++) {
+                double dist_to_point = (x - obstacle.v.block(j,0,1,2).transpose()).norm();
+                if (dist_to_point < closest_dist) {
+                    closest_point = j;
+                    closest_dist = dist_to_point;
+                }
+            }
+            vector_t faces = obstacle.Adjacency.block(closest_point,0,1,obstacle.Adjacency.cols()).transpose();
+            Eigen::Array<bool, Eigen::Dynamic, 1> inds = (obstacle.A.block(0,0,obstacle.A.rows(),2) * x - obstacle.b).array() > -1e-2 && faces.array() > 0;
+            matrix_t A_hyp(1,2);
+            for (int j = 0; j < inds.size(); j++) {
+                if (inds(j) > 0) {
+                    A_hyp += obstacle.A.block(j,0,1,2);
+                }   
+            }
+            A_hyp = A_hyp / A_hyp.norm();
+            vector_t b_hyp = A_hyp * obstacle.v.block(closest_point,0,1,2).transpose();
+
+            double v = (A_hyp * x - b_hyp).maxCoeff();
+            if (v < max_viol) {
+                A << A_hyp,0,0;
+                b << b_hyp;
+                max_viol = v;
+            }
+        }
+        A_constraint.push_back(A);
+        b_constraint.push_back(b);
+    }
+    buildConstraintInequality(A_constraint, b_constraint);
+    f = -H*f_ref;
 }
 
 void MPC::updateCost()
