@@ -71,57 +71,41 @@ void solveGraph(std::vector<vector_4t> points, vector_4t starting_loc, vector_4t
     int &starting_ind, int& ending_ind, Graph g, std::vector<double> d, std::vector<Vertex>& p);
 std::vector<matrix_t> getVerticesOfBezPoly(const std::vector<vector_4t> points);
 
+// does there exist and edge from p1 to p2.
+bool adjacent(vector_4t p1, vector_4t p2, const matrix_t &Fx, const matrix_t & Gx,const matrix_t & Fy, const matrix_t & Gy, const matrix_t D_nT);
+
 template<typename Func>
-Graph buildGraph(std::vector<vector_4t> points, Func&& F_G)
+Graph buildGraph(std::vector<vector_4t> points, Func&& F_G, const matrix_t D_nT)
 {
     const int num_pts = points.size();
     Graph g(num_pts);
     for (int i = 0; i < num_pts; ++i)
     {
+        matrix_t xbar_x(2,1);
+        matrix_t xbar_y(2,1);
+        xbar_x << points[i](0), points[i](2);
+        xbar_y << points[i](1), points[i](3);
+        matrix_t f_xbar_x(1,1);
+        matrix_t f_xbar_y(1,1);
+        f_xbar_x.setZero();
+        f_xbar_y.setZero(); // double integrator has no nonlinearities.
+        matrix_t g_xbar_x(1,1);
+        matrix_t g_xbar_y(1,1);
+        g_xbar_x << 1;
+        g_xbar_y << 1;
+        // TODO: This function in Bezier tubes does a sketchy resize so we have to re-
+        // initialize here. FIX this for general use!
+        matrix_t Fx, Fy, Gx, Gy;
+        F_G(xbar_x, f_xbar_x, g_xbar_x, Fx, Gx);
+        F_G(xbar_y, f_xbar_y, g_xbar_y, Fy, Gy);
         for (int j = 0; j < num_pts; ++j)
         {
-            if (i != j && adjacent(points[i], points[j]))
+            if (i != j && adjacent(points[i], points[j], Fx, Gx, Fy, Gy, D_nT))
             {
                 add_edge(i, j, get_weight(points[i], points[j]), g);
             }
         }
     }
     return g;
-}
-
-// does there exist and edge from p1 to p2.
-template<typename Func>
-bool adjacent(vector_4t p1, vector_4t p2, Func&& F_G) {
-    bool connected = true; //innocent until proven guilty
-
-    matrix_t xbar_x(2,1);
-    matrix_t xbar_y(2,1);
-    matrix_t x(4,1);
-    matrix_t y(4,1);
-    matrix_t f_xbar_x(1,1);
-    matrix_t f_xbar_y(1,1);
-    f_xbar_x.setZero();
-    f_xbar_y.setZero(); // double integrator has no nonlinearities.
-    matrix_t g_xbar_x(1,1);
-    matrix_t g_xbar_y(1,1);
-    g_xbar_x << 1;
-    g_xbar_y << 1;
-    matrix_t F, G;
-
-    x << p1(0), p1(2), p2(0), p2(2);
-    y << p1(1), p1(3), p2(1), p2(3);
-    xbar_x << p1(0), p1(2);
-    xbar_y << p1(1), p1(3);
-
-    F_G(xbar_x, f_xbar_x, g_xbar_x, F, G);
-    if (((F * x - G).array() > 0).any()) {
-        connected = false;
-    }
-    F_G(xbar_y, f_xbar_y, g_xbar_y, F, G);
-    if (((F * y - G).array() > 0).any()) {
-        connected = false;
-    }
-    return connected;
-
 }
 

@@ -13,7 +13,7 @@ using ::Eigen::Triplet;
 class MPC {
 public:
 
-    MPC_Params p;
+    MPC_Params mpc_params_;
 
     SparseMatrix<double> constraints;
     vector_t lb, ub;
@@ -30,7 +30,7 @@ public:
     void updateConstraints(const vector_t& x0);
     void updateConstraintsSQP(std::vector<Obstacle> obstacles, vector_t sol);
     void updateCost();
-    vector_t solve(const vector_t& x0); 
+    vector_t solve(std::vector<Obstacle> obstacles, vector_t sol, const vector_t& x0); 
     void reset();
 
 private:

@@ -2,13 +2,13 @@
 #include "../inc/mpc.h"
 
 // Constructor: Initialize the MPC parameters
-MPC::MPC(const int nx, const int nu, const MPC_Params loaded_p) : nx_(nx), nu_(nu), p(loaded_p) {
-    nvar_ = nx_*p.N+nu_*(p.N-1);
+MPC::MPC(const int nx, const int nu, const MPC_Params loaded_p) : nx_(nx), nu_(nu), mpc_params_(loaded_p) {
+    nvar_ = nx_*mpc_params_.N+nu_*(mpc_params_.N-1);
 
-    dynamics_A.resize(nx_*p.N + nu_*(p.N-1),(nx_*p.N+nu_*(p.N-1)));
-    SparseIdentity.resize(nx_*p.N + nu_*(p.N-1),(nx_*p.N+nu_*(p.N-1)));
-    dynamics_b_lb.resize(nx_*p.N + nu_*(p.N-1)); // dynamics and torque bounds
-    dynamics_b_ub.resize(nx_*p.N + nu_*(p.N-1)); // dynamics and torque bounds
+    dynamics_A.resize(nx_*mpc_params_.N + nu_*(mpc_params_.N-1),(nx_*mpc_params_.N+nu_*(mpc_params_.N-1)));
+    SparseIdentity.resize(nx_*mpc_params_.N + nu_*(mpc_params_.N-1),(nx_*mpc_params_.N+nu_*(mpc_params_.N-1)));
+    dynamics_b_lb.resize(nx_*mpc_params_.N + nu_*(mpc_params_.N-1)); // dynamics and torque bounds
+    dynamics_b_ub.resize(nx_*mpc_params_.N + nu_*(mpc_params_.N-1)); // dynamics and torque bounds
     dynamics_b_lb.setZero();
     dynamics_b_ub.setZero();
 
@@ -18,14 +18,14 @@ MPC::MPC(const int nx, const int nu, const MPC_Params loaded_p) : nx_(nx), nu_(n
 
     Ad_.resize(nx_,nx_);
     Bd_.resize(nx_,nu_);
-    Ad_ << 1, 0, p.dt, 0,
-          0, 1, 0, p.dt,
+    Ad_ << 1, 0, mpc_params_.dt, 0,
+          0, 1, 0, mpc_params_.dt,
           0, 0, 1, 0,
           0, 0, 0, 1;
-    Bd_ <<  pow(p.dt, 2)/2, 0,
-            0, pow(p.dt, 2)/2,
-            p.dt, 0,
-            0, p.dt;
+    Bd_ <<  pow(mpc_params_.dt, 2)/2, 0,
+            0, pow(mpc_params_.dt, 2)/2,
+            mpc_params_.dt, 0,
+            0, mpc_params_.dt;
 
     settings.verbose = false;
     settings.polish = true;
@@ -33,17 +33,17 @@ MPC::MPC(const int nx, const int nu, const MPC_Params loaded_p) : nx_(nx), nu_(n
 
 void MPC::buildDynamicEquality() {
     int offset = nx_;
-    for (int i = 0; i < p.N-1; i++) {
+    for (int i = 0; i < mpc_params_.N-1; i++) {
         for (int j = 0; j < nx_; j++) {
             for (int k = 0; k < nx_; k++) {
                 dynamics_A.insert(offset+i * nx_ + j, i * nx_ + k) = Ad_(j,k);
             }
             for (int k = 0; k < nu_; k++) {
-                dynamics_A.insert(offset+i*nx_+j,nx_*p.N+i*nu_+k) = Bd_(j, k);
+                dynamics_A.insert(offset+i*nx_+j,nx_*mpc_params_.N+i*nu_+k) = Bd_(j, k);
             }
         }
     }
-    for (int i = offset; i < nx_*p.N; i++) {
+    for (int i = offset; i < nx_*mpc_params_.N; i++) {
         SparseIdentity.insert(i,i) = 1;
     }
     dynamics_A = SparseIdentity - dynamics_A;
@@ -52,16 +52,16 @@ void MPC::buildDynamicEquality() {
         dynamics_A.insert(i,i) = 1;
     }
     // torque_bounds
-    for (int i = 0; i < p.N-1; i++) {
+    for (int i = 0; i < mpc_params_.N-1; i++) {
       for (int j = 0; j < nu_; j++) {
-        dynamics_A.insert(nx_*p.N+i*nu_+j,nx_*p.N+i*nu_+j) = 1;
+        dynamics_A.insert(nx_*mpc_params_.N+i*nu_+j,nx_*mpc_params_.N+i*nu_+j) = 1;
       }
     }
     // set torque limits
-    for (int i = 0; i < p.N-1; i++) {
+    for (int i = 0; i < mpc_params_.N-1; i++) {
       for (int j = 0; j < nu_; j++) {
-        dynamics_b_lb(nx_*p.N+i*nu_+j) = -p.tau_max;
-        dynamics_b_ub(nx_*p.N+i*nu_+j) = p.tau_max;
+        dynamics_b_lb(nx_*mpc_params_.N+i*nu_+j) = -mpc_params_.tau_max;
+        dynamics_b_ub(nx_*mpc_params_.N+i*nu_+j) = mpc_params_.tau_max;
       }
     }
 }
@@ -71,7 +71,7 @@ void MPC::buildConstraintInequality(const std::vector<matrix_t> A_constraint, co
 
     int total_rows = std::accumulate(A_constraint.begin(), A_constraint.end(), 0, 
                                  [](int sum, const matrix_t& mat) { return sum + mat.rows(); });
-    constraint_A.resize(4*total_rows, nx_*p.N); // constrain x_k and x_kp1 except for last point
+    constraint_A.resize(4*total_rows, nx_*mpc_params_.N); // constrain x_k and x_kp1 except for last point
     constraint_b.resize(4*total_rows);
     constraint_A.setZero();
     constraint_b.setZero();
@@ -110,17 +110,17 @@ void MPC::setBez(matrix_t Bez) {
 
 void MPC::buildCost()
 {
-    for (int i = 0; i < p.N; i++) {
+    for (int i = 0; i < mpc_params_.N; i++) {
         for (int j = 0; j < nx_; j++) {
-	  if (i == p.N-1) {
-            H.insert(i*nx_+j,i*nx_+j) = p.terminalScaling*p.stateScaling(j);
+	  if (i == mpc_params_.N-1) {
+            H.insert(i*nx_+j,i*nx_+j) = mpc_params_.terminalScaling*mpc_params_.stateScaling(j);
 	  } else {
-            H.insert(i*nx_+j,i*nx_+j) = p.stateScaling(j);
+            H.insert(i*nx_+j,i*nx_+j) = mpc_params_.stateScaling(j);
 	  }
         }
-	if (i < p.N-1) {
+	if (i < mpc_params_.N-1) {
           for (int j = 0; j < nu_; j++) {
-              H.insert(p.N*nx_+i*nu_+j,p.N*nx_+i*nu_+j) = p.inputScaling(j);
+              H.insert(mpc_params_.N*nx_+i*nu_+j,mpc_params_.N*nx_+i*nu_+j) = mpc_params_.inputScaling(j);
           }
 	}
     }
@@ -136,18 +136,20 @@ vector_t MPC::buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles,
     std::vector<matrix_t> A_constraint;
     std::vector<vector_t> b_constraint;
 
-    vector_t sol(p.N * nx_);
-    for (int i = 0; i < optimalInd.size(); i++) {
+    vector_t sol(mpc_params_.N * nx_);
+    for (int i = 0; i < std::min((size_t)mpc_params_.N,optimalInd.size()); i++) {
         // Have to traverse the list backwards
         const int vertex_ind = optimalInd[optimalInd.size()-1-i];
         vector_t x = optimalPath[optimalInd.size()-1-i];
         sol.segment(i*nx_,nx_) << x;
     }
-    vector_t x_terminal;
-    x_terminal = optimalPath.front();
-    for (int i = optimalInd.size(); i < p.N; i++) 
-    {    
-        sol.segment(i*nx_,nx_) << x_terminal;
+    if (optimalInd.size() < mpc_params_.N) {
+        vector_t x_terminal;
+        x_terminal = optimalPath.front();
+        for (int i = optimalInd.size(); i < mpc_params_.N; i++) 
+        {    
+            sol.segment(i*nx_,nx_) << x_terminal;
+        }
     }
 
     // for (int i = 0; i < optimalInd.size(); i++) {
@@ -181,7 +183,7 @@ vector_t MPC::buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles,
     // b_term << -1;
     // vector_t x_terminal;
     // x_terminal = optimalPath.front();
-    // for (int i = optimalInd.size(); i < p.N; i++) 
+    // for (int i = optimalInd.size(); i < mpc_params_.N; i++) 
     // {    
     //     A_constraint.push_back(A_term);
     //     b_constraint.push_back(b_term);
@@ -212,7 +214,7 @@ void MPC::initialize()
         }
     }
     for (int i = 0; i < constraint_A.rows(); i++) {
-        for (int j = 0; j < nx_*p.N; j++) {
+        for (int j = 0; j < nx_*mpc_params_.N; j++) {
             constraints.insert(i + dynamics_A.rows(), j) = constraint_A(i, j);
         }
     }
@@ -239,7 +241,7 @@ void MPC::updateConstraints(const vector_t& x0)
     lb.segment(dynamics_b_lb.size(), constraint_b.size()) << constraint_b;
 
     for (int i = 0; i < constraint_A.rows(); i++) {
-        for (int j = 0; j < nx_*p.N; j++) {
+        for (int j = 0; j < nx_*mpc_params_.N; j++) {
             constraints.coeffRef(i + dynamics_A.rows(), j) = constraint_A(i, j);
         }
     }
@@ -251,11 +253,11 @@ void MPC::updateConstraintsSQP(std::vector<Obstacle> obstacles, vector_t sol) {
     vector_t f_ref(nvar_);
     f_ref.setZero();
     
-    for (int i = 0; i < p.N; i++) {
-        if (p.use_previous_reference) {
+    for (int i = 0; i < mpc_params_.N; i++) {
+        if (mpc_params_.use_previous_reference) {
             f_ref.segment(i*nx_,nx_) << sol.segment(i*nx_,nx_);
         } else {
-            f_ref.segment(i*nx_,nx_) << sol.segment((p.N-1)*nx_,nx_);
+            f_ref.segment(i*nx_,nx_) << sol.segment((mpc_params_.N-1)*nx_,nx_);
         }
         matrix_t A(1,4);
         vector_t b(1);
@@ -303,14 +305,22 @@ void MPC::updateCost()
 }
 
 // Solve the MPC problem
-vector_t MPC::solve(const vector_t& x0) {
+vector_t MPC::solve(std::vector<Obstacle> obstacles, vector_t sol, const vector_t& x0) {
 
-    updateConstraints(x0);
-    auto status1 = solver.UpdateConstraintMatrix(constraints);
-    auto status2 = solver.SetBounds(lb, ub);
+    vector_t mpc_sol = sol;
+    for (int i = 0; i < mpc_params_.SQP_iters; i++) {
+        updateConstraintsSQP(obstacles, mpc_sol);
+        updateCost();
+
+        updateConstraints(x0);
+        auto status1 = solver.UpdateConstraintMatrix(constraints);
+        auto status2 = solver.SetBounds(lb, ub);
+        
+        OsqpExitCode exit_code = solver.Solve();
+        mpc_sol = solver.primal_solution();
+    }
+    return mpc_sol;
     
-    OsqpExitCode exit_code = solver.Solve();
-    return solver.primal_solution();
 }
 
 void MPC::reset() {

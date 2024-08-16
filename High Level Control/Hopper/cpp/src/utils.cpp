@@ -46,6 +46,7 @@ void log(matrix_t data, std::ofstream& file, std::string name)
     file << name << " = [" << std::endl;
     file << data << std::endl;
     file << "];" << std::endl;
+    std::cout << "Done Logging " << name << std::endl;
 }
 
 void logEdges(Graph cut_graph, std::ofstream& file, std::string name) {
@@ -57,6 +58,7 @@ void logEdges(Graph cut_graph, std::ofstream& file, std::string name) {
                     << "," << target(*ei, cut_graph) << std::endl;
     }
     file << "];" << std::endl;
+    std::cout << "Done Logging " << name << std::endl;
 }
 
 void logObstacles(const std::vector<Obstacle> obstacles, std::ofstream& file) {
@@ -68,5 +70,6 @@ void logObstacles(const std::vector<Obstacle> obstacles, std::ofstream& file) {
         file << obstacles[i].b << std::endl;
         file << "];" << std::endl;
     }
+    std::cout << "Done Logging obstacles" << std::endl;
     
 }

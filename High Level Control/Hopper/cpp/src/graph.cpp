@@ -28,6 +28,25 @@ bool adjacent(vector_4t p1, vector_4t p2)
     return (p1 - p2).norm() < distance_tol;
 }
 
+// does there exist and edge from p1 to p2.
+bool adjacent(vector_4t p1, vector_4t p2, const matrix_t &Fx, const matrix_t & Gx,const matrix_t & Fy, const matrix_t & Gy, const matrix_t D_nT) {
+    bool connected = true; //innocent until proven guilty
+
+    matrix_t x(4,1);
+    matrix_t y(4,1);
+    x << p1(0), p1(2), p2(0), p2(2);
+    y << p1(1), p1(3), p2(1), p2(3);
+
+    if (((Fx * D_nT * x - Gx).array() > 0).any()) {
+        connected = false;
+    }
+    
+    if (((Fy * D_nT * y - Gy).array() > 0).any()) {
+        connected = false;
+    }
+    return connected;
+}
+
 double get_weight(vector_4t p1, vector_4t p2)
 {
     return (p1 - p2).norm();
