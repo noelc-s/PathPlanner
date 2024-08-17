@@ -49,6 +49,7 @@ void log(std::vector<Derived> data, std::ofstream& file, std::string name,
         file << d.transpose() << std::endl;
     }
     file << "];" << std::endl;
+    std::cout << "Done Logging " << name << std::endl;
 }
 
 // ChatGPT with some crazy templating
@@ -62,6 +63,7 @@ void log(std::vector<T> data, std::ofstream& file, std::string name,
         file << d << std::endl;
     }
     file << "];" << std::endl;
+    std::cout << "Done Logging " << name << std::endl;
 }
 
 void log(matrix_t data, std::ofstream& file, std::string name);

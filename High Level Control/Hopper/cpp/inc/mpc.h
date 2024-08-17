@@ -25,12 +25,13 @@ public:
     void buildCost();
     vector_t buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles, const int num_adjacent_pts,
                          const int num_obstacle_faces, const std::vector<vector_t> optimal_solution,
-                         const std::vector<int> optimalInd, const std::vector<vector_t> optimalPath);
+                         const std::vector<int> optimalInd, const std::vector<vector_t> optimalPath,
+                         const vector_t& xg);
     void initialize();
     void updateConstraints(const vector_t& x0);
-    void updateConstraintsSQP(std::vector<Obstacle> obstacles, vector_t sol);
+    void updateConstraintsSQP(std::vector<Obstacle> obstacles, vector_t sol, const vector_t& xg);
     void updateCost();
-    vector_t solve(std::vector<Obstacle> obstacles, vector_t sol, const vector_t& x0); 
+    vector_t solve(std::vector<Obstacle> obstacles, vector_t sol, const vector_t& x0, const vector_t& xg); 
     void reset();
 
 private:

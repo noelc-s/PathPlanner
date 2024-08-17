@@ -10,8 +10,18 @@ using vector_4t = Eigen::Matrix<double, 4, 1>;
 using matrix_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
 using vector_t = Eigen::Matrix<double, Eigen::Dynamic, 1>;
 
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, boost::no_property, boost::property<boost::edge_weight_t, double>> Graph;
+// Define a property that includes a matrix_t
+struct EdgeProperties {
+    double weight;   // standard weight
+    matrix_t controlPoints; // custom matrix property
+    int source_vertex_ind;
+    int target_vertex_ind;
+};
+
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, boost::no_property, EdgeProperties> Graph;
 typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
+typedef boost::graph_traits<Graph>::edge_descriptor Edge;
+typedef boost::graph_traits<Graph>::edge_iterator EdgeIterator;
 
 struct Obstacle
 {

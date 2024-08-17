@@ -1,0 +1,15 @@
+
+num_traj: 100
+num_points: 500
+
+log_edges: false
+
+MPC:
+  N: 30
+  dt: 1.0
+  SQP_iters: 5
+  stateScaling: [1, 1, 10, 10]
+  inputScaling: [10, 10]
+  terminalScaling: 10
+  tau_max: 5
+  use_previous_reference: true

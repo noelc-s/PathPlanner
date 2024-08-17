@@ -5,7 +5,7 @@ project(path_planning)
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_CXX_FLAGS "-O3 -pthread")
+# set(CMAKE_CXX_FLAGS "-O3 -pthread")
 
 set(bezier_DIR /home/noelcs/repos/BezierTubes/cpp)
 

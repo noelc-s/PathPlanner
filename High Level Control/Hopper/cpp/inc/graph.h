@@ -6,8 +6,7 @@
 #include <fstream>
 
 const double distance_tol = 0.5;
-const double viol_tol = 0.25;
-const double dim_of_R = .3;
+const double viol_tol = 0.3;
 
 using namespace osqp;
 using namespace boost;
@@ -23,14 +22,14 @@ public:
     SparseMatrix<double> constraint_matrix;
     vector_t lb, ub;
 
-    void setupQP(OsqpInstance& instance, const std::vector<matrix_t> vertices, const Obstacle obstacle);
+    void setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges, const Obstacle obstacle);
     int initializeQP(OsqpSolver &solver, OsqpInstance instance, OsqpSettings settings);
     int solveQP(OsqpSolver &solver);
 
     void buildConstraintMatrix(Obstacle obstacle,
-                            const int num_pts, const int num_obstacle_faces, const std::vector<matrix_t> vertices);
+                 const int num_obstacle_faces, const std::vector<matrix_t> edges);
     void updateConstraints(OsqpSolver &solver, Obstacle obstacle,
-                            const int num_pts, const int num_obstacle_faces, const std::vector<matrix_t> vertices);
+                 const int num_obstacle_faces, const std::vector<matrix_t> edges);
 };
 
 const double kInfinity = std::numeric_limits<double>::infinity();
@@ -66,17 +65,21 @@ double get_weight(vector_4t p1, vector_4t p2);
 
 std::ofstream open_log_file(std::string filename);
 Graph buildGraph(std::vector<vector_4t> points);
-void cutEdges(Graph &g, const int num_pts, const std::vector<matrix_t> vertices, const int num_obstacle_faces, VectorXd optimal_solution);
+void cutEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std::pair<int,int>> vertexInds,
+                const int num_obstacle_faces, VectorXd optimal_solution);
 void solveGraph(std::vector<vector_4t> points, vector_4t starting_loc, vector_4t ending_loc,
     int &starting_ind, int& ending_ind, Graph g, std::vector<double> d, std::vector<Vertex>& p);
-std::vector<matrix_t> getVerticesOfBezPoly(const std::vector<vector_4t> points);
+std::vector<matrix_t> getBezEdges(const Graph graph, std::vector<std::pair<int,int>> &vertexInds);
 
 // does there exist and edge from p1 to p2.
 bool adjacent(vector_4t p1, vector_4t p2, const matrix_t &Fx, const matrix_t & Gx,const matrix_t & Fy, const matrix_t & Gy, const matrix_t D_nT);
 
 template<typename Func>
-Graph buildGraph(std::vector<vector_4t> points, Func&& F_G, const matrix_t D_nT)
+Graph buildGraph(std::vector<vector_4t> points, Func&& F_G, const matrix_t& D_nT, const matrix_t& Bez)
 {
+    EdgeProperties ep;
+    matrix_t controlPoints(4,4);
+    vector_t x1_x2(2*points[0].size());
     const int num_pts = points.size();
     Graph g(num_pts);
     for (int i = 0; i < num_pts; ++i)
@@ -102,7 +105,14 @@ Graph buildGraph(std::vector<vector_4t> points, Func&& F_G, const matrix_t D_nT)
         {
             if (i != j && adjacent(points[i], points[j], Fx, Gx, Fy, Gy, D_nT))
             {
-                add_edge(i, j, get_weight(points[i], points[j]), g);
+                ep.weight = get_weight(points[i], points[j]);
+                x1_x2 << points[i], points[j];
+                matrix_t mul = Bez*x1_x2;
+                controlPoints << Eigen::Map<Eigen::MatrixXd>(mul.data(),4,4);
+                ep.controlPoints = controlPoints;
+                ep.source_vertex_ind = i;
+                ep.target_vertex_ind = j;
+                add_edge(i, j, ep, g);
             }
         }
     }

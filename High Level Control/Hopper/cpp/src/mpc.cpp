@@ -131,7 +131,8 @@ vector_t MPC::buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles,
                     const int num_adjacent_pts,
                     const int num_obstacle_faces,
                     const std::vector<vector_t> optimalSolutions, const std::vector<int> optimalInd,
-                    const std::vector<vector_t> optimalPath)
+                    const std::vector<vector_t> optimalPath,
+                    const vector_t& xg)
 {
     std::vector<matrix_t> A_constraint;
     std::vector<vector_t> b_constraint;
@@ -144,11 +145,9 @@ vector_t MPC::buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles,
         sol.segment(i*nx_,nx_) << x;
     }
     if (optimalInd.size() < mpc_params_.N) {
-        vector_t x_terminal;
-        x_terminal = optimalPath.front();
         for (int i = optimalInd.size(); i < mpc_params_.N; i++) 
         {    
-            sol.segment(i*nx_,nx_) << x_terminal;
+            sol.segment(i*nx_,nx_) << xg;
         }
     }
 
@@ -191,7 +190,7 @@ vector_t MPC::buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles,
     // }
     // buildConstraintInequality(A_constraint, b_constraint);
 
-    updateConstraintsSQP(obstacles, sol);
+    updateConstraintsSQP(obstacles, sol, xg);
     return sol;
 }
 
@@ -247,7 +246,7 @@ void MPC::updateConstraints(const vector_t& x0)
     }
 }
 
-void MPC::updateConstraintsSQP(std::vector<Obstacle> obstacles, vector_t sol) {
+void MPC::updateConstraintsSQP(std::vector<Obstacle> obstacles, vector_t sol, const vector_t& xg) {
     std::vector<matrix_t> A_constraint;
     std::vector<vector_t> b_constraint;
     vector_t f_ref(nvar_);
@@ -257,7 +256,7 @@ void MPC::updateConstraintsSQP(std::vector<Obstacle> obstacles, vector_t sol) {
         if (mpc_params_.use_previous_reference) {
             f_ref.segment(i*nx_,nx_) << sol.segment(i*nx_,nx_);
         } else {
-            f_ref.segment(i*nx_,nx_) << sol.segment((mpc_params_.N-1)*nx_,nx_);
+            f_ref.segment(i*nx_,nx_) << xg;
         }
         matrix_t A(1,4);
         vector_t b(1);
@@ -305,11 +304,11 @@ void MPC::updateCost()
 }
 
 // Solve the MPC problem
-vector_t MPC::solve(std::vector<Obstacle> obstacles, vector_t sol, const vector_t& x0) {
+vector_t MPC::solve(std::vector<Obstacle> obstacles, vector_t sol, const vector_t& x0, const vector_t& xg) {
 
     vector_t mpc_sol = sol;
     for (int i = 0; i < mpc_params_.SQP_iters; i++) {
-        updateConstraintsSQP(obstacles, mpc_sol);
+        updateConstraintsSQP(obstacles, mpc_sol, xg);
         updateCost();
 
         updateConstraints(x0);

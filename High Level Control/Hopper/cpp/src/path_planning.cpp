@@ -68,31 +68,31 @@ int main()
     obstacles.push_back(obstacle);
     freq.push_back(dist_freq(gen));
 
-    // x_rand = dis_x(gen);
-    // y_rand = dis_y(gen);
-    // obstacle.b << 0.5 + x_rand, 0.5 - x_rand, 0.5 + y_rand, 0.5 - y_rand;
-    // obstacle.v << 0.5 + x_rand, 0.5 + y_rand,
-    //     0.5 + x_rand, -0.5 + y_rand,
-    //     -0.5 + x_rand, -0.5 + y_rand,
-    //     -0.5 + x_rand, 0.5 + y_rand;
-    // b_obs.push_back(obstacle.b);
-    // obstacles.push_back(obstacle);
-    // freq.push_back(dist_freq(gen));
+    x_rand = dis_x(gen);
+    y_rand = dis_y(gen);
+    obstacle.b << 0.5 + x_rand, 0.5 - x_rand, 0.5 + y_rand, 0.5 - y_rand;
+    obstacle.v << 0.5 + x_rand, 0.5 + y_rand,
+        0.5 + x_rand, -0.5 + y_rand,
+        -0.5 + x_rand, -0.5 + y_rand,
+        -0.5 + x_rand, 0.5 + y_rand;
+    b_obs.push_back(obstacle.b);
+    obstacles.push_back(obstacle);
+    freq.push_back(dist_freq(gen));
 
-    // x_rand = dis_x(gen);
-    // y_rand = dis_y(gen);
-    // obstacle.b << 0.5 + x_rand, 0.5 - x_rand, 0.5 + y_rand, 0.5 - y_rand;
-    // obstacle.v << 0.5 + x_rand, 0.5 + y_rand,
-    //     0.5 + x_rand, -0.5 + y_rand,
-    //     -0.5 + x_rand, -0.5 + y_rand,
-    //     -0.5 + x_rand, 0.5 + y_rand;
-    // b_obs.push_back(obstacle.b);
-    // obstacles.push_back(obstacle);
-    // freq.push_back(dist_freq(gen));
+    x_rand = dis_x(gen);
+    y_rand = dis_y(gen);
+    obstacle.b << 0.5 + x_rand, 0.5 - x_rand, 0.5 + y_rand, 0.5 - y_rand;
+    obstacle.v << 0.5 + x_rand, 0.5 + y_rand,
+        0.5 + x_rand, -0.5 + y_rand,
+        -0.5 + x_rand, -0.5 + y_rand,
+        -0.5 + x_rand, 0.5 + y_rand;
+    b_obs.push_back(obstacle.b);
+    obstacles.push_back(obstacle);
+    freq.push_back(dist_freq(gen));
 
     logObstacles(obstacles, graph_file);
 
-    std::vector<vector_4t> points = generateUniformPoints(params.num_points, -3, 3, -3, 3, -0, 0, -0, 0);
+    std::vector<vector_4t> points = generateUniformPoints(params.num_points, -2.9, 2.9, -2.9, 2.9, 0,0,0,0);
 
     // Setup the OSQP instance
     OsqpInstance graphInstance;
@@ -153,14 +153,15 @@ int main()
     auto F_G = [&B, A_x, b_x, H, m_ind, gamma, Q, Lg, Lf, e_bar, K, u_max](matrix_t xbar, matrix_t f_xbar, matrix_t g_xbar, matrix_t &F, matrix_t &G)
     { B.F_G(A_x, b_x, H, m_ind, xbar, f_xbar, g_xbar, gamma, Q, Lg, Lf, e_bar, K, u_max, F, G); };
 
-    Graph graph = buildGraph(points, F_G, D_nT_vec);
-    std::vector<matrix_t> vertices = getVerticesOfBezPoly(points);
+    Graph graph = buildGraph(points, F_G, D_nT_vec, Bez);
+    std::vector<std::pair<int,int>> vertexInds;
+    std::vector<matrix_t> edges = getBezEdges(graph, vertexInds);
 
     // Log graph
     log(points, graph_file, "Points");
-    log(vertices, graph_file, "ReachableVertices");
+    log(edges, graph_file, "EdgeControlPoints");
 
-    graphQP.setupQP(graphInstance, vertices, obstacles[0]);
+    graphQP.setupQP(graphInstance, edges, obstacles[0]);
     graphQP.initializeQP(graphSolver, graphInstance, graphSettings);
 
     for (int i = 0; i < params.num_traj; i++)
@@ -186,13 +187,14 @@ int main()
 
         for (auto obstacle : obstacles)
         {
-            graphQP.updateConstraints(graphSolver, obstacle, params.num_points, num_obstacle_faces, vertices);
+            graphQP.updateConstraints(graphSolver, obstacle, num_obstacle_faces, edges);
             graphQP.solveQP(graphSolver);
 
             double optimal_objective = graphSolver.objective_value();
             VectorXd optimal_solution = graphSolver.primal_solution();
 
-            cutEdges(cut_graph, params.num_points, vertices, obstacle.b.size(), optimal_solution);
+            cutEdges(cut_graph, edges, vertexInds, obstacle.b.size(), 
+            optimal_solution);
             optimalSolutions.push_back(optimal_solution);
         }
 
@@ -204,8 +206,7 @@ int main()
         solveGraph(points, starting_loc, ending_loc, starting_ind, ending_ind, cut_graph, d, p);
 
         if (params.log_edges) {
-            logEdges(graph, output_file, "Edges");
-            log(optimalSolutions[0], output_file, "Sol");
+            logEdges(cut_graph, output_file, "Edges");
         }
 
         std::vector<int> optimalInd;
@@ -225,7 +226,7 @@ int main()
         log(optimalInd, output_file, "Path{" + (std::to_string)(i + 1) + "}");
 
         vector_t sol = mpc.buildFromOptimalGraphSolve(obstacles, num_adjacent_pts,
-                                       num_obstacle_faces, optimalSolutions, optimalInd, optimalPath);
+                                       num_obstacle_faces, optimalSolutions, optimalInd, optimalPath, ending_loc);
         if (i == 0)
         {
             mpc.initialize();
@@ -233,21 +234,13 @@ int main()
         mpc.updateConstraints(starting_loc);
         mpc.updateCost();
 
-        sol = mpc.solve(obstacles, sol, starting_loc);
-
-        // for (int i = 0; i < mpc_params.SQP_iters; i++) {
-        //     mpc.updateConstraintsSQP(obstacles, sol);
-        //     mpc.updateCost();
-            
-        // }
-
-
+        sol = mpc.solve(obstacles, sol, starting_loc, ending_loc);
 
         output_file << "MPC{" << i + 1 << "}=[" << std::endl;
         output_file << sol << std::endl;
         output_file << "];" << std::endl;
 
-        // starting_loc << sol.segment(4,4);
+        starting_loc << sol.segment(4,4);
     }
 
     output_file.close();
