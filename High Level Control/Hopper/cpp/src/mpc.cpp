@@ -124,8 +124,7 @@ void MPC::buildCost()
     f.setZero();
 }
 
-vector_t MPC::buildFromOptimalGraphSolve(const Obstacle O,
-                    const std::vector<vector_t> optimalSolutions, const std::vector<int> optimalInd,
+vector_t MPC::buildFromOptimalGraphSolve(const Obstacle O, const std::vector<int> optimalInd,
                     const std::vector<vector_t> optimalPath,
                     const vector_t& xg)
 {
@@ -147,6 +146,9 @@ vector_t MPC::buildFromOptimalGraphSolve(const Obstacle O,
     }
 
     updateConstraintsSQP(O, sol, xg);
+    if (!isInitialized) {
+        initialize();
+    }
     return sol;
 }
 
@@ -183,6 +185,7 @@ void MPC::initialize()
     instance.upper_bounds << ub;
 
     auto status = solver.Init(instance, settings);
+    isInitialized = true;
 
 }
 

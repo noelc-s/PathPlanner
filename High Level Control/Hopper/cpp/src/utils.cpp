@@ -19,8 +19,7 @@ void Timer::time(std::string info) {
 
 void loadParams(std::string filename, Params &p, MPC_Params &mpc_p, Planner_Params &p_p) {
     YAML::Node config = YAML::LoadFile("../config/params.yaml");
-    p.num_traj = config["num_traj"].as<int>();
-    p.log_edges = config["log_edges"].as<bool>();
+    p.num_traj = config["num_traj"].as<int>();   
 
     mpc_p.N = config["MPC"]["N"].as<int>();
     mpc_p.dt = config["MPC"]["dt"].as<double>();
@@ -46,6 +45,7 @@ void loadParams(std::string filename, Params &p, MPC_Params &mpc_p, Planner_Para
     for (int i = 0; i < p_p.dx_bounds.size(); i++)
         p_p.dx_bounds(i) = tmp[i];
     p_p.num_points = config["Planner"]["num_points"].as<int>();
+    p_p.log_edges = config["Planner"]["log_edges"].as<bool>();
 
 }
 

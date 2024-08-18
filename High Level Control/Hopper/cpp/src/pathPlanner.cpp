@@ -1,9 +1,9 @@
 #include "../inc/pathPlanner.h"
 
-
 PathPlanner::PathPlanner(int state_size, int input_size, const MPC_Params mpc_params, const Planner_Params p_p)
-         : state_size_(state_size), params_(p_p) {
-    
+    : state_size_(state_size), params_(p_p)
+{
+
     int order = 3;
     B_p.gamma = 2;
     double tau = mpc_params.dt;
@@ -11,9 +11,9 @@ PathPlanner::PathPlanner(int state_size, int input_size, const MPC_Params mpc_pa
     matrix_t H_vec = B->H_vec(B->H, input_size, order, B_p.gamma, B_p.gamma - 1);
     matrix_t D_nT_vec = B->inv_DT_vec(input_size, order, B_p.gamma);
     Bez_ = H_vec * D_nT_vec;
-    
+
     // Right now this is done independently for x and y!
-    
+
     B_p.m_ind = 1;
     B_p.Lf = 0;
     B_p.Lg = 1;
@@ -48,21 +48,23 @@ PathPlanner::PathPlanner(int state_size, int input_size, const MPC_Params mpc_pa
     D_nT_vec_ = B->inv_DT_vec(B_p.m_ind, order, B_p.gamma);
 }
 
-void PathPlanner::F_G(const matrix_t& xbar, const matrix_t& f_xbar, const matrix_t& g_xbar, matrix_t& F, matrix_t& G) {
+void PathPlanner::F_G(const matrix_t &xbar, const matrix_t &f_xbar, const matrix_t &g_xbar, matrix_t &F, matrix_t &G)
+{
     B->F_G(B_p.A_x, B_p.b_x, B_p.H, B_p.m_ind, xbar, f_xbar, g_xbar, B_p.gamma, B_p.Q, B_p.Lg, B_p.Lf, B_p.e_bar, B_p.K, B_p.u_max, F, G);
 }
 
-void PathPlanner::initialize(const Obstacle O) {
+void PathPlanner::initialize(const Obstacle O)
+{
 
     graphSettings.verbose = false;
     graphSettings.polish = false;
 
     points = generateUniformPoints(
-            params_.num_points,
-            params_.x_bounds[0], params_.x_bounds[1],
-            params_.x_bounds[2], params_.x_bounds[3],
-            params_.dx_bounds[0], params_.dx_bounds[1],
-            params_.dx_bounds[2], params_.dx_bounds[3]);
+        params_.num_points,
+        params_.x_bounds[0], params_.x_bounds[1],
+        params_.x_bounds[2], params_.x_bounds[3],
+        params_.dx_bounds[0], params_.dx_bounds[1],
+        params_.dx_bounds[2], params_.dx_bounds[3]);
 
     auto F_G_bound = std::bind(&PathPlanner::F_G, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
 
@@ -75,7 +77,7 @@ void PathPlanner::initialize(const Obstacle O) {
 }
 
 std::vector<vector_4t> generateUniformPoints(int n, double min_x, double max_x, double min_y, double max_y,
-                                                    double min_dx, double max_dx, double min_dy, double max_dy)
+                                             double min_dx, double max_dx, double min_dy, double max_dy)
 {
     std::vector<vector_4t> points;
     points.reserve(n);
@@ -95,4 +97,55 @@ std::vector<vector_4t> generateUniformPoints(int n, double min_x, double max_x, 
     }
 
     return points;
+}
+
+void PathPlanner::cutGraph(Obstacle O, std::ofstream &output_file)
+{
+    cut_graph.clear();
+    boost::copy_graph(graph, cut_graph);
+
+    for (auto obstacle : O.obstacles)
+    {
+        graphQP.updateConstraints(graphSolver, obstacle, edges);
+        graphQP.solveQP(graphSolver);
+
+        double optimal_objective = graphSolver.objective_value();
+        VectorXd optimal_solution = graphSolver.primal_solution();
+
+        cutGraphEdges(cut_graph, edges, vertexInds, obstacle.b.size(), optimal_solution);
+    }
+    if (params_.log_edges)
+    {
+        logEdges(cut_graph, output_file, "Edges");
+    }
+}
+
+void PathPlanner::findPath(vector_t starting_location, vector_t ending_location, std::vector<int> &optimalInd, std::vector<vector_t> &optimalPath)
+{
+    std::vector<double> d(num_vertices(cut_graph), std::numeric_limits<double>::max());
+    std::vector<Vertex> p(num_vertices(cut_graph), graph_traits<Graph>::null_vertex()); // the predecessor array
+    int starting_ind = -1;
+    int ending_ind = -1;
+
+    solveGraph(points, starting_location, ending_location, starting_ind, ending_ind, cut_graph, d, p);
+
+    for (Vertex v = vertex(ending_ind, cut_graph); v != vertex(starting_ind, cut_graph); v = p[v])
+    {
+        if (v < 0 || v > points.size())
+        {
+            std::cout << "No optimal path found" << std::endl;
+        }
+        optimalInd.push_back(v);
+        optimalPath.push_back(points[v]);
+    }
+    optimalInd.push_back(vertex(starting_ind, cut_graph));
+    optimalPath.push_back(points[vertex(starting_ind, cut_graph)]);
+}
+
+void PathPlanner::refineWithMPC(vector_t &sol, Obstacle O, std::vector<int> optimalInd, std::vector<vector_t> optimalPath, vector_t starting_loc, vector_t ending_loc) {
+        sol = mpc_->buildFromOptimalGraphSolve(O, optimalInd, optimalPath, ending_loc);
+        mpc_->updateConstraints(starting_loc);
+        mpc_->updateCost();
+
+        sol = mpc_->solve(O, sol, starting_loc, ending_loc);
 }

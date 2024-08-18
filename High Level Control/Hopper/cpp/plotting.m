@@ -8,7 +8,7 @@ num_opt = 4+4;
 
 result = yaml.loadFile("/home/noelcs/repos/ThinkingThroughThings/High Level Control//Hopper/cpp/config/params.yaml");
 
-plot_edges = result.log_edges;
+plot_edges = result.Planner.log_edges;
 u_max = result.MPC.tau_max;
 
 if(exist("Path")==2)

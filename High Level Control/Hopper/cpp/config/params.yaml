@@ -1,8 +1,6 @@
 
 num_traj: 100
 
-log_edges: false
-
 MPC:
   N: 30
   dt: 1.0
@@ -17,3 +15,4 @@ Planner:
   num_points: 500
   x_bounds: [-3, 3, -3, 3] # min_x, max_x, min_y, max_y
   dx_bounds: [0, 0, 0, 0] # min_dx, max_dx, min_dy, max_dy
+  log_edges: false

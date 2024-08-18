@@ -32,6 +32,7 @@ public:
     int state_size_;
     std::unique_ptr<MPC> mpc_;
     Graph graph;
+    Graph cut_graph;
     GraphQP graphQP;
     std::vector<matrix_t> edges;
     std::vector<std::pair<int,int>> vertexInds;
@@ -50,6 +51,10 @@ public:
     BezierParams B_p;
 
     void F_G(const matrix_t& xbar, const matrix_t& f_xbar, const matrix_t& g_xbar, matrix_t& F, matrix_t& G);
+
+    void cutGraph(Obstacle O, std::ofstream &output_file);
+    void findPath(vector_t starting_location, vector_t ending_location, std::vector<int> &optimalInd, std::vector<vector_t> &optimalPath);
+    void refineWithMPC(vector_t &sol, Obstacle O, std::vector<int> optimalInd, std::vector<vector_t> optimalPath, vector_t starting_loc, vector_t ending_loc);
 };
 
 std::vector<vector_4t> generateUniformPoints(int n, double min_x, double max_x, double min_y, double max_y,

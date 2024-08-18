@@ -23,12 +23,12 @@ struct Planner_Params
     int num_points;
     vector_t x_bounds;
     vector_t dx_bounds;
+    bool log_edges;
 };
 
 struct Params
 {
     int num_traj;
-    bool log_edges;
 };
 
 struct MPC_Params 

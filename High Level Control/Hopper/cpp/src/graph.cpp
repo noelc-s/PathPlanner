@@ -233,7 +233,7 @@ int GraphQP::solveQP(OsqpSolver &solver)
     return 0;
 }
 
-void cutEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std::pair<int,int>> vertexInds, 
+void cutGraphEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std::pair<int,int>> vertexInds, 
                     const int num_obstacle_faces, VectorXd optimal_solution)
 {
     int dec_var_ind = 0;
