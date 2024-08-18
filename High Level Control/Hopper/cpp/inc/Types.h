@@ -22,11 +22,3 @@ typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, boost:
 typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
 typedef boost::graph_traits<Graph>::edge_descriptor Edge;
 typedef boost::graph_traits<Graph>::edge_iterator EdgeIterator;
-
-struct Obstacle
-{
-    matrix_t A;
-    vector_t b;
-    matrix_t v; // vertex representation
-    matrix_t Adjacency; // points to faces (1 at (i,j) if point i touches face j)
-};

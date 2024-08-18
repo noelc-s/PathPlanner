@@ -1,6 +1,7 @@
-
+#pragma once
 #include "Types.h"
 #include "utils.h"
+#include "obstacle.h"
 #include "osqp++.h"
 
 #include <Eigen/Dense>
@@ -18,20 +19,19 @@ public:
     SparseMatrix<double> constraints;
     vector_t lb, ub;
 
-    MPC(const int nx, const int nu, const MPC_Params loaded_p);
-    void setBez(matrix_t Bez);
+    MPC(const int nx, const int nu, const MPC_Params loaded_p, const matrix_t &Bez);
     void buildDynamicEquality();
     void buildConstraintInequality(const std::vector<matrix_t> A_constraint, const std::vector<vector_t> b_constraint);
     void buildCost();
-    vector_t buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles, const int num_adjacent_pts,
-                         const int num_obstacle_faces, const std::vector<vector_t> optimal_solution,
+    vector_t buildFromOptimalGraphSolve(const Obstacle O,
+                         const std::vector<vector_t> optimal_solution,
                          const std::vector<int> optimalInd, const std::vector<vector_t> optimalPath,
                          const vector_t& xg);
     void initialize();
     void updateConstraints(const vector_t& x0);
-    void updateConstraintsSQP(std::vector<Obstacle> obstacles, vector_t sol, const vector_t& xg);
+    void updateConstraintsSQP(Obstacle O, vector_t sol, const vector_t& xg);
     void updateCost();
-    vector_t solve(std::vector<Obstacle> obstacles, vector_t sol, const vector_t& x0, const vector_t& xg); 
+    vector_t solve(Obstacle O, vector_t sol, const vector_t& x0, const vector_t& xg); 
     void reset();
 
 private:

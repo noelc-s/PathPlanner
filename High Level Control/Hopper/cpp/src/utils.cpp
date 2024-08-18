@@ -17,9 +17,8 @@ void Timer::time(std::string info) {
     time();
 }
 
-void loadParams(std::string filename, Params &p, MPC_Params &mpc_p) {
+void loadParams(std::string filename, Params &p, MPC_Params &mpc_p, Planner_Params &p_p) {
     YAML::Node config = YAML::LoadFile("../config/params.yaml");
-    p.num_points = config["num_points"].as<int>();
     p.num_traj = config["num_traj"].as<int>();
     p.log_edges = config["log_edges"].as<bool>();
 
@@ -29,7 +28,6 @@ void loadParams(std::string filename, Params &p, MPC_Params &mpc_p) {
     mpc_p.terminalScaling = config["MPC"]["terminalScaling"].as<double>();
     mpc_p.tau_max = config["MPC"]["tau_max"].as<double>();
     mpc_p.use_previous_reference = config["MPC"]["use_previous_reference"].as<bool>();
-
     mpc_p.stateScaling.resize(4);
     mpc_p.inputScaling.resize(2);
     auto tmp = config["MPC"]["stateScaling"].as<std::vector<double>>();
@@ -38,6 +36,16 @@ void loadParams(std::string filename, Params &p, MPC_Params &mpc_p) {
     tmp = config["MPC"]["inputScaling"].as<std::vector<double>>();
     for (int i = 0; i < mpc_p.inputScaling.size(); i++)
         mpc_p.inputScaling(i) = tmp[i];
+
+    p_p.x_bounds.resize(4);
+    p_p.dx_bounds.resize(4);
+    tmp = config["Planner"]["x_bounds"].as<std::vector<double>>();
+    for (int i = 0; i < p_p.x_bounds.size(); i++)
+        p_p.x_bounds(i) = tmp[i];
+    tmp = config["Planner"]["dx_bounds"].as<std::vector<double>>();
+    for (int i = 0; i < p_p.dx_bounds.size(); i++)
+        p_p.dx_bounds(i) = tmp[i];
+    p_p.num_points = config["Planner"]["num_points"].as<int>();
 
 }
 
@@ -61,7 +69,7 @@ void logEdges(Graph cut_graph, std::ofstream& file, std::string name) {
     std::cout << "Done Logging " << name << std::endl;
 }
 
-void logObstacles(const std::vector<Obstacle> obstacles, std::ofstream& file) {
+void logObstacles(const std::vector<Obs> obstacles, std::ofstream& file) {
     for (int i = 0; i < obstacles.size(); i++) {
         file << "Obstacle_A{" << i+1 << "}=[" << std::endl;
         file << obstacles[i].A << std::endl;
@@ -71,5 +79,13 @@ void logObstacles(const std::vector<Obstacle> obstacles, std::ofstream& file) {
         file << "];" << std::endl;
     }
     std::cout << "Done Logging obstacles" << std::endl;
-    
+}
+
+void logObstaclePosition(const std::vector<Obs> obstacles, std::ofstream& file, const int i) {
+    file << "Obs{" << i + 1 << "}=[" << std::endl;
+    for (int o = 0; o < obstacles.size(); o++)
+    {
+        file << obstacles[o].center(0) << ", " << obstacles[o].center(1) << std::endl;
+    }
+    file << "];" << std::endl;
 }

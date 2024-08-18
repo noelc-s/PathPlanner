@@ -4,6 +4,7 @@
 #include <fstream>
 #include "yaml-cpp/yaml.h"
 #include "Types.h"
+#include "obstacle.h"
 
 class Timer
 {
@@ -17,10 +18,16 @@ public:
     void time(std::string info);
 };
 
+struct Planner_Params
+{
+    int num_points;
+    vector_t x_bounds;
+    vector_t dx_bounds;
+};
+
 struct Params
 {
     int num_traj;
-    int num_points;
     bool log_edges;
 };
 
@@ -36,7 +43,7 @@ struct MPC_Params
     bool use_previous_reference;
 };
 
-void loadParams(std::string filename, Params &p, MPC_Params &mpc_p);
+void loadParams(std::string filename, Params &p, MPC_Params &mpc_p, Planner_Params &p_p);
 
 // ChatGPT with some crazy templating
 template <typename Derived>
@@ -68,4 +75,5 @@ void log(std::vector<T> data, std::ofstream& file, std::string name,
 
 void log(matrix_t data, std::ofstream& file, std::string name);
 void logEdges(Graph cut_graph, std::ofstream& file, std::string name);
-void logObstacles(const std::vector<Obstacle> obstacles, std::ofstream& file);
+void logObstacles(const std::vector<Obs> obstacles, std::ofstream& file);
+void logObstaclePosition(const std::vector<Obs> obstacles, std::ofstream& file, const int i);

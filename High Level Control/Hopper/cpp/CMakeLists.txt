@@ -5,7 +5,7 @@ project(path_planning)
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-# set(CMAKE_CXX_FLAGS "-O3 -pthread")
+set(CMAKE_CXX_FLAGS "-O3 -pthread")
 
 set(bezier_DIR /home/noelcs/repos/BezierTubes/cpp)
 
@@ -43,7 +43,7 @@ include_directories(bezier INTERFACE ${bezier_DIR}/inc)
 
 find_package(yaml-cpp REQUIRED)
 
-add_library(graph STATIC src/graph.cpp src/mpc.cpp src/utils.cpp)
+add_library(graph STATIC src/obstacle.cpp src/pathPlanner.cpp src/graph.cpp src/mpc.cpp src/utils.cpp)
 target_link_libraries(graph PUBLIC osqp-cpp bezier yaml-cpp)
 
 add_executable(path_planning src/path_planning.cpp)

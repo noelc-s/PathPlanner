@@ -119,7 +119,7 @@ for path_ind = 1:size(Path,2)
     tic
     P = Path{path_ind}+1;
     path_x = [center(P(1),1)];
-    path_y = [center(P(1),2)];
+    path_y = [center(P(1),2)]; 
     for i = 1:size(P,1)-1
         path_x = [path_x center(P(i+1),1)];
         path_y = [path_y center(P(i+1),2)];

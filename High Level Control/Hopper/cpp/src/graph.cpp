@@ -1,28 +1,5 @@
 #include "../inc/graph.h"
 
-std::vector<vector_4t> generateUniformPoints(int n, double min_x, double max_x, double min_y, double max_y,
-                                                    double min_dx, double max_dx, double min_dy, double max_dy)
-{
-    std::vector<vector_4t> points;
-    points.reserve(n);
-
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis_x(min_x, max_x);
-    std::uniform_real_distribution<> dis_y(min_y, max_y);
-    std::uniform_real_distribution<> dis_dx(min_dx, max_dx);
-    std::uniform_real_distribution<> dis_dy(min_dy, max_dy);
-
-    for (int i = 0; i < n; ++i)
-    {
-        vector_4t point;
-        point << dis_x(gen), dis_y(gen), dis_dx(gen), dis_dy(gen);
-        points.push_back(point);
-    }
-
-    return points;
-}
-
 bool adjacent(vector_4t p1, vector_4t p2)
 {
     return (p1 - p2).norm() < distance_tol;
@@ -102,7 +79,7 @@ GraphQP::GraphQP()
 
 }
 
-void GraphQP::setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges, const Obstacle obstacle)
+void GraphQP::setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges, const Obs obstacle)
 {
     // decision variables are lambda_i and slack_i for each adj pt. [l1 l2 ... s1 s2 ...]
     // decision variables per point = number of vertices in edge control point polytope + number of obstacle faces;
@@ -127,7 +104,7 @@ void GraphQP::setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges,
     constraint_matrix.resize(num_constaints, total_adjacent_pts + num_edges * num_obstacle_faces);
     lb.resize(num_constaints);
     ub.resize(num_constaints);
-    buildConstraintMatrix(obstacle, num_obstacle_faces, edges);
+    buildConstraintMatrix(obstacle, edges);
 
     instance.lower_bounds = lb;
     instance.upper_bounds = ub;
@@ -138,9 +115,9 @@ void GraphQP::setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges,
     // std::cout << instance.upper_bounds << std::endl;
 }
 
-void GraphQP::buildConstraintMatrix(Obstacle obstacle,
-            const int num_obstacle_faces, const std::vector<matrix_t> edges)
+void GraphQP::buildConstraintMatrix(Obs obstacle, const std::vector<matrix_t> edges)
 {
+    const int num_obstacle_faces = obstacle.b.size();
     std::vector<Triplet<double>> tripletsA;
 
     int variable_index = 0;
@@ -194,12 +171,12 @@ void GraphQP::buildConstraintMatrix(Obstacle obstacle,
     constraint_matrix.setFromTriplets(tripletsA.begin(), tripletsA.end());
 }
 
-void GraphQP::updateConstraints(OsqpSolver &solver, Obstacle obstacle, 
-            const int num_obstacle_faces, const std::vector<matrix_t> edges)
+void GraphQP::updateConstraints(OsqpSolver &solver, Obs obstacle, const std::vector<matrix_t> edges)
 {
     const int total_adjacent_pts = std::accumulate(edges.begin(), edges.end(), 0, 
                                  [](int sum, const matrix_t& mat) { return sum + mat.cols(); }); 
     const int num_edges = edges.size();
+    const int num_obstacle_faces = obstacle.b.size();
     const int num_constraints = num_edges + num_edges * num_obstacle_faces + total_adjacent_pts;
 
     int variable_index = 0;

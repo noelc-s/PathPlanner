@@ -2,7 +2,8 @@
 #include "../inc/mpc.h"
 
 // Constructor: Initialize the MPC parameters
-MPC::MPC(const int nx, const int nu, const MPC_Params loaded_p) : nx_(nx), nu_(nu), mpc_params_(loaded_p) {
+MPC::MPC(const int nx, const int nu, const MPC_Params loaded_p, const matrix_t &Bez)
+     : nx_(nx), nu_(nu), mpc_params_(loaded_p), Bez_(Bez) {
     nvar_ = nx_*mpc_params_.N+nu_*(mpc_params_.N-1);
 
     dynamics_A.resize(nx_*mpc_params_.N + nu_*(mpc_params_.N-1),(nx_*mpc_params_.N+nu_*(mpc_params_.N-1)));
@@ -104,10 +105,6 @@ void MPC::buildConstraintInequality(const std::vector<matrix_t> A_constraint, co
     }
 }
 
-void MPC::setBez(matrix_t Bez) {
-    Bez_ = Bez;
-}
-
 void MPC::buildCost()
 {
     for (int i = 0; i < mpc_params_.N; i++) {
@@ -127,9 +124,7 @@ void MPC::buildCost()
     f.setZero();
 }
 
-vector_t MPC::buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles,
-                    const int num_adjacent_pts,
-                    const int num_obstacle_faces,
+vector_t MPC::buildFromOptimalGraphSolve(const Obstacle O,
                     const std::vector<vector_t> optimalSolutions, const std::vector<int> optimalInd,
                     const std::vector<vector_t> optimalPath,
                     const vector_t& xg)
@@ -151,46 +146,7 @@ vector_t MPC::buildFromOptimalGraphSolve(const std::vector<Obstacle> obstacles,
         }
     }
 
-    // for (int i = 0; i < optimalInd.size(); i++) {
-    //     // Have to traverse the list backwards
-    //     const int vertex_ind = optimalInd[optimalInd.size()-1-i];
-
-    //     double min_violation = 1e5;
-    //     matrix_t A_obs(1,4);
-    //     vector_t b_obs(1);
-    //     for (int i = 0; i < optimalSolutions.size(); i++) {
-    //         vector_t optimal_solution = optimalSolutions[i];
-    //         Obstacle obstacle = obstacles[i];
-    //         vector_t violation = optimal_solution.segment(vertex_ind*(num_adjacent_pts+num_obstacle_faces)+num_adjacent_pts,num_obstacle_faces);
-    //         Eigen::Index maxIndex;
-    //         double violation_mag = violation.maxCoeff(&maxIndex);
-    //         if (violation_mag < min_violation)
-    //         {
-    //             A_obs << obstacle.A.row(maxIndex);
-    //             b_obs << obstacle.b.segment(maxIndex,1);
-    //             min_violation = violation_mag;
-    //         }
-    //     }
-    //     A_constraint.push_back(A_obs);
-    //     b_constraint.push_back(b_obs);
-    //     f_ref.segment(i*nx_,nx_) << optimalPath[optimalInd.size()-1-i];
-    //     // f_ref.segment(i*nx_,nx_) << optimalPath.front();
-    // }
-    // matrix_t A_term(1,4);
-    // vector_t b_term(1);
-    // A_term << 0,0,0,0;
-    // b_term << -1;
-    // vector_t x_terminal;
-    // x_terminal = optimalPath.front();
-    // for (int i = optimalInd.size(); i < mpc_params_.N; i++) 
-    // {    
-    //     A_constraint.push_back(A_term);
-    //     b_constraint.push_back(b_term);
-    //     f_ref.segment(i*nx_,nx_) << x_terminal;
-    // }
-    // buildConstraintInequality(A_constraint, b_constraint);
-
-    updateConstraintsSQP(obstacles, sol, xg);
+    updateConstraintsSQP(O, sol, xg);
     return sol;
 }
 
@@ -246,7 +202,7 @@ void MPC::updateConstraints(const vector_t& x0)
     }
 }
 
-void MPC::updateConstraintsSQP(std::vector<Obstacle> obstacles, vector_t sol, const vector_t& xg) {
+void MPC::updateConstraintsSQP(Obstacle O, vector_t sol, const vector_t& xg) {
     std::vector<matrix_t> A_constraint;
     std::vector<vector_t> b_constraint;
     vector_t f_ref(nvar_);
@@ -261,7 +217,7 @@ void MPC::updateConstraintsSQP(std::vector<Obstacle> obstacles, vector_t sol, co
         matrix_t A(1,4);
         vector_t b(1);
         double max_viol = 1e3;
-        for (auto obstacle : obstacles) {
+        for (auto obstacle : O.obstacles) {
             vector_t x(2);
             x << sol.segment(nx_*i,2);
             int closest_point = -1;
@@ -304,11 +260,11 @@ void MPC::updateCost()
 }
 
 // Solve the MPC problem
-vector_t MPC::solve(std::vector<Obstacle> obstacles, vector_t sol, const vector_t& x0, const vector_t& xg) {
+vector_t MPC::solve(Obstacle O, vector_t sol, const vector_t& x0, const vector_t& xg) {
 
     vector_t mpc_sol = sol;
     for (int i = 0; i < mpc_params_.SQP_iters; i++) {
-        updateConstraintsSQP(obstacles, mpc_sol, xg);
+        updateConstraintsSQP(O, mpc_sol, xg);
         updateCost();
 
         updateConstraints(x0);

@@ -1,8 +1,9 @@
 #pragma once 
 #include "Types.h"
+#include "obstacle.h"
 
+#include <numeric> 
 #include "osqp++.h"
-#include <random>
 #include <fstream>
 
 const double distance_tol = 0.5;
@@ -22,14 +23,12 @@ public:
     SparseMatrix<double> constraint_matrix;
     vector_t lb, ub;
 
-    void setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges, const Obstacle obstacle);
+    void setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges, const Obs obstacle);
     int initializeQP(OsqpSolver &solver, OsqpInstance instance, OsqpSettings settings);
     int solveQP(OsqpSolver &solver);
 
-    void buildConstraintMatrix(Obstacle obstacle,
-                 const int num_obstacle_faces, const std::vector<matrix_t> edges);
-    void updateConstraints(OsqpSolver &solver, Obstacle obstacle,
-                 const int num_obstacle_faces, const std::vector<matrix_t> edges);
+    void buildConstraintMatrix(Obs obstacle, const std::vector<matrix_t> edges);
+    void updateConstraints(OsqpSolver &solver, Obs obstacle, const std::vector<matrix_t> edges);
 };
 
 const double kInfinity = std::numeric_limits<double>::infinity();
@@ -56,10 +55,6 @@ make_predecessor_recorder(PredecessorMap p) {
     return record_predecessorsC<PredecessorMap>(p);
 }
 
-
-
-std::vector<vector_4t> generateUniformPoints(int n, double min_x, double max_x, double min_y, double max_y,
-                                                    double min_dx, double max_dx, double min_dy, double max_dy);
 bool adjacent(vector_4t p1, vector_4t p2);
 double get_weight(vector_4t p1, vector_4t p2);
 
