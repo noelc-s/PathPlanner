@@ -16,6 +16,7 @@ public:
     Obstacle();
 
     void updateObstaclePositions(double t);
+    void updateObstaclePositions(int o, double x, double y);
     
     std::vector<Obs> obstacles;
     std::vector<vector_t> b_obs;

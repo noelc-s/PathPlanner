@@ -1,5 +1,6 @@
 #include "../inc/utils.h"
 
+Timer::Timer(bool print) : print_(print){};
 
 void Timer::start() {
     start_time = std::chrono::high_resolution_clock::now();
@@ -17,8 +18,8 @@ void Timer::time(std::string info) {
     time();
 }
 
-void loadParams(std::string filename, Params &p, MPC_Params &mpc_p, Planner_Params &p_p) {
-    YAML::Node config = YAML::LoadFile("../config/params.yaml");
+void loadPlannerParams(std::string filename, Params &p, MPC_Params &mpc_p, Planner_Params &p_p) {
+    YAML::Node config = YAML::LoadFile(filename);
     p.num_traj = config["num_traj"].as<int>();   
 
     mpc_p.N = config["MPC"]["N"].as<int>();
@@ -35,6 +36,7 @@ void loadParams(std::string filename, Params &p, MPC_Params &mpc_p, Planner_Para
     tmp = config["MPC"]["inputScaling"].as<std::vector<double>>();
     for (int i = 0; i < mpc_p.inputScaling.size(); i++)
         mpc_p.inputScaling(i) = tmp[i];
+    mpc_p.buffer = config["MPC"]["buffer"].as<double>();
 
     p_p.x_bounds.resize(4);
     p_p.dx_bounds.resize(4);

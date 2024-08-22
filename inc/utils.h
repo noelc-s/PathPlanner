@@ -9,6 +9,7 @@
 class Timer
 {
 public: 
+    Timer(bool print);
     std::chrono::high_resolution_clock::time_point start_time;
     std::chrono::high_resolution_clock::time_point end_time;
     std::chrono::duration<double, std::nano> duration;
@@ -16,6 +17,8 @@ public:
     void start();
     void time();
     void time(std::string info);
+
+    bool print_;
 };
 
 struct Planner_Params
@@ -41,9 +44,10 @@ struct MPC_Params
     double terminalScaling;
     double tau_max;
     bool use_previous_reference;
+    double buffer;
 };
 
-void loadParams(std::string filename, Params &p, MPC_Params &mpc_p, Planner_Params &p_p);
+void loadPlannerParams(std::string filename, Params &p, MPC_Params &mpc_p, Planner_Params &p_p);
 
 // ChatGPT with some crazy templating
 template <typename Derived>

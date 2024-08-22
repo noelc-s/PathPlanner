@@ -56,6 +56,6 @@ target_link_libraries(integrator PUBLIC graph)
 # export CC=/usr/bin/gcc-8
 # export CXX=/usr/bin/g++-8
 
-find_package(CUDA REQUIRED)
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_30")
-cuda_add_executable(cuda src/project_onto_obst.cu)
+# find_package(CUDA REQUIRED)
+# set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_30")
+# cuda_add_executable(cuda src/project_onto_obst.cu)

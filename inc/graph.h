@@ -1,6 +1,7 @@
 #pragma once 
 #include "Types.h"
 #include "obstacle.h"
+#include "utils.h"
 
 #include <numeric> 
 #include "osqp++.h"

@@ -1,5 +1,7 @@
 #include "../inc/pathPlanner.h"
 
+#define PRINT_TIMING true
+
 PathPlanner::PathPlanner(int state_size, int input_size, const MPC_Params mpc_params, const Planner_Params p_p)
     : state_size_(state_size), params_(p_p)
 {
@@ -99,21 +101,32 @@ std::vector<vector_4t> generateUniformPoints(int n, double min_x, double max_x, 
     return points;
 }
 
-void PathPlanner::cutGraph(Obstacle O, std::ofstream &output_file)
+void PathPlanner::cutGraph(Obstacle O)
 {
     cut_graph.clear();
     boost::copy_graph(graph, cut_graph);
+    Timer timer(PRINT_TIMING);
 
     for (auto obstacle : O.obstacles)
     {
+        timer.start();
         graphQP.updateConstraints(graphSolver, obstacle, edges);
+        timer.time("    Update constraints: ");
         graphQP.solveQP(graphSolver);
+        timer.time("    Solve: ");
 
         double optimal_objective = graphSolver.objective_value();
         VectorXd optimal_solution = graphSolver.primal_solution();
 
+        timer.start();
         cutGraphEdges(cut_graph, edges, vertexInds, obstacle.b.size(), optimal_solution);
+        timer.time("    Cut graph edges: ");
     }
+}
+
+void PathPlanner::cutGraph(Obstacle O, std::ofstream &output_file)
+{
+    cutGraph(O);
     if (params_.log_edges)
     {
         logEdges(cut_graph, output_file, "Edges");
@@ -134,6 +147,7 @@ void PathPlanner::findPath(vector_t starting_location, vector_t ending_location,
         if (v < 0 || v > points.size())
         {
             std::cout << "No optimal path found" << std::endl;
+            return;
         }
         optimalInd.push_back(v);
         optimalPath.push_back(points[v]);

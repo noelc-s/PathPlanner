@@ -1,5 +1,7 @@
 #include "../inc/graph.h"
 
+#define PRINT_TIMING true
+
 bool adjacent(vector_4t p1, vector_4t p2)
 {
     return (p1 - p2).norm() < distance_tol;
@@ -183,6 +185,8 @@ void GraphQP::updateConstraints(OsqpSolver &solver, Obs obstacle, const std::vec
     int constraint_index = 0;
     int num_reachable_pts = -1;
 
+    Timer timer(PRINT_TIMING);
+    timer.start();
     for (int p = 0; p < num_edges; p++)
     {
         num_reachable_pts = edges[p].cols();
@@ -205,9 +209,12 @@ void GraphQP::updateConstraints(OsqpSolver &solver, Obs obstacle, const std::vec
         constraint_index += 1 + num_reachable_pts + num_obstacle_faces;
         variable_index += num_reachable_pts + num_obstacle_faces;
     }
+    timer.time("        Modification:");
 
     auto status1 = solver.UpdateConstraintMatrix(constraint_matrix);
+    timer.time("        update constraint matrix:");
     auto status2 = solver.SetBounds(lb, ub);
+    timer.time("        set bounds:");
 }
 
 int GraphQP::initializeQP(OsqpSolver &solver, OsqpInstance instance, OsqpSettings settings)
@@ -258,7 +265,8 @@ void solveGraph(std::vector<vector_4t> points, vector_4t starting_loc, vector_4t
     const int num_pts = points.size();
     for (int i = 0; i < num_pts; i++) {
         double s_dist = (points[i] - starting_loc).norm();
-        if (s_dist < closest_starting_dist) {
+        int num_edges = out_degree(i, g);
+        if (num_edges > 0 && s_dist < closest_starting_dist) {
             closest_starting_dist = s_dist;
             starting_ind = i;
         }

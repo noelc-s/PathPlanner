@@ -6,7 +6,8 @@ output;
 dim_per_sample = 4;
 num_opt = 4+4;
 
-result = yaml.loadFile("/home/noelcs/repos/ThinkingThroughThings/High Level Control//Hopper/cpp/config/params.yaml");
+% result = yaml.loadFile("/home/noelcs/repos/ThinkingThroughThings/High Level Control//Hopper/cpp/config/params.yaml");
+result = yaml.loadFile("config/params.yaml");
 
 plot_edges = result.Planner.log_edges;
 u_max = result.MPC.tau_max;
@@ -100,7 +101,7 @@ path_plot = [];
 mpc_plot = [];
 start_v = [];
 end_v = [];
-axis([-4 4 -4 4])
+axis([-1 2 -1.5 1.5])
 axis square
 mpc_N = result.MPC.N;
 x_ind = 1:mpc_N*4;

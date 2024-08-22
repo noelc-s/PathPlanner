@@ -247,6 +247,7 @@ void MPC::updateConstraintsSQP(Obstacle O, vector_t sol, const vector_t& xg) {
             if (v < max_viol) {
                 A << A_hyp,0,0;
                 b << b_hyp;
+                b += mpc_params_.buffer*vector_t::Ones(b_hyp.size());
                 max_viol = v;
             }
         }
