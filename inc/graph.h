@@ -3,12 +3,13 @@
 #include "obstacle.h"
 #include "utils.h"
 
+#include <omp.h>
 #include <numeric> 
 #include "osqp++.h"
 #include <fstream>
 
 const double distance_tol = 0.5;
-const double viol_tol = 0.3;
+const double viol_tol = 0.05;
 
 using namespace osqp;
 using namespace boost;
@@ -24,12 +25,14 @@ public:
     SparseMatrix<double> constraint_matrix;
     vector_t lb, ub;
 
-    void setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges, const Obs obstacle);
+    void setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges, const Obstacle obstacle);
     int initializeQP(OsqpSolver &solver, OsqpInstance instance, OsqpSettings settings);
     int solveQP(OsqpSolver &solver);
 
-    void buildConstraintMatrix(Obs obstacle, const std::vector<matrix_t> edges);
-    void updateConstraints(OsqpSolver &solver, Obs obstacle, const std::vector<matrix_t> edges);
+    void buildConstraintMatrix(Obstacle obstacle, const std::vector<matrix_t> edges);
+    void ObstacleMembershipHeuristic(Obstacle obstacle, const std::vector<matrix_t> edges, int_vector_t &member);
+    void updateConstraints(OsqpSolver &solver, Obstacle obstacle, const std::vector<matrix_t> edges);
+    void updateConstraints(OsqpSolver &solver, Obstacle obstacle, const std::vector<matrix_t> edges, const int_vector_t &member);
 };
 
 const double kInfinity = std::numeric_limits<double>::infinity();
@@ -63,6 +66,8 @@ std::ofstream open_log_file(std::string filename);
 Graph buildGraph(std::vector<vector_4t> points);
 void cutGraphEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std::pair<int,int>> vertexInds,
                 const int num_obstacle_faces, VectorXd optimal_solution);
+void cutGraphEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std::pair<int,int>> vertexInds, 
+                const int num_obstacle_faces, VectorXd optimal_solution, int_vector_t membership);                
 void solveGraph(std::vector<vector_4t> points, vector_4t starting_loc, vector_4t ending_loc,
     int &starting_ind, int& ending_ind, Graph g, std::vector<double> d, std::vector<Vertex>& p);
 std::vector<matrix_t> getBezEdges(const Graph graph, std::vector<std::pair<int,int>> &vertexInds);
@@ -78,6 +83,7 @@ Graph buildGraph(std::vector<vector_4t> points, Func&& F_G, const matrix_t& D_nT
     vector_t x1_x2(2*points[0].size());
     const int num_pts = points.size();
     Graph g(num_pts);
+    #pragma omp parallel for
     for (int i = 0; i < num_pts; ++i)
     {
         matrix_t xbar_x(2,1);

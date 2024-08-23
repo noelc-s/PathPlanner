@@ -30,6 +30,7 @@ MPC::MPC(const int nx, const int nu, const MPC_Params loaded_p, const matrix_t &
 
     settings.verbose = false;
     settings.polish = true;
+    settings.max_iter = 100;
 }
 
 void MPC::buildDynamicEquality() {
@@ -124,7 +125,7 @@ void MPC::buildCost()
     f.setZero();
 }
 
-vector_t MPC::buildFromOptimalGraphSolve(const Obstacle O, const std::vector<int> optimalInd,
+vector_t MPC::buildFromOptimalGraphSolve(const ObstacleCollector O, const std::vector<int> optimalInd,
                     const std::vector<vector_t> optimalPath,
                     const vector_t& xg)
 {
@@ -205,7 +206,7 @@ void MPC::updateConstraints(const vector_t& x0)
     }
 }
 
-void MPC::updateConstraintsSQP(Obstacle O, vector_t sol, const vector_t& xg) {
+void MPC::updateConstraintsSQP(ObstacleCollector O, vector_t sol, const vector_t& xg) {
     std::vector<matrix_t> A_constraint;
     std::vector<vector_t> b_constraint;
     vector_t f_ref(nvar_);
@@ -223,25 +224,11 @@ void MPC::updateConstraintsSQP(Obstacle O, vector_t sol, const vector_t& xg) {
         for (auto obstacle : O.obstacles) {
             vector_t x(2);
             x << sol.segment(nx_*i,2);
-            int closest_point = -1;
-            double closest_dist = 1e3;
-            for (int j = 0; j < obstacle.v.rows(); j++) {
-                double dist_to_point = (x - obstacle.v.block(j,0,1,2).transpose()).norm();
-                if (dist_to_point < closest_dist) {
-                    closest_point = j;
-                    closest_dist = dist_to_point;
-                }
-            }
-            vector_t faces = obstacle.Adjacency.block(closest_point,0,1,obstacle.Adjacency.cols()).transpose();
-            Eigen::Array<bool, Eigen::Dynamic, 1> inds = (obstacle.A.block(0,0,obstacle.A.rows(),2) * x - obstacle.b).array() > -1e-2 && faces.array() > 0;
             matrix_t A_hyp(1,2);
-            for (int j = 0; j < inds.size(); j++) {
-                if (inds(j) > 0) {
-                    A_hyp += obstacle.A.block(j,0,1,2);
-                }   
-            }
-            A_hyp = A_hyp / A_hyp.norm();
-            vector_t b_hyp = A_hyp * obstacle.v.block(closest_point,0,1,2).transpose();
+            vector_t b_hyp(1);
+            A_hyp.setZero();
+            b_hyp.setZero();
+            getSeparatingHyperplane(obstacle, x, A_hyp, b_hyp);
 
             double v = (A_hyp * x - b_hyp).maxCoeff();
             if (v < max_viol) {
@@ -264,18 +251,25 @@ void MPC::updateCost()
 }
 
 // Solve the MPC problem
-vector_t MPC::solve(Obstacle O, vector_t sol, const vector_t& x0, const vector_t& xg) {
-
+vector_t MPC::solve(ObstacleCollector O, vector_t sol, const vector_t& x0, const vector_t& xg) {
+    Timer timer(PRINT_TIMING);
+    timer.start();
     vector_t mpc_sol = sol;
     for (int i = 0; i < mpc_params_.SQP_iters; i++) {
         updateConstraintsSQP(O, mpc_sol, xg);
+        timer.time("        Update Constraints: ");
         updateCost();
+        timer.time("        Update Cost: ");
 
         updateConstraints(x0);
+        timer.time("        Update Constraints: ");
         auto status1 = solver.UpdateConstraintMatrix(constraints);
+        timer.time("        Update UpdateConstraintMatrix: ");
         auto status2 = solver.SetBounds(lb, ub);
+        timer.time("        Update SetBounds: ");
         
         OsqpExitCode exit_code = solver.Solve();
+        timer.time("        Solve: ");
         mpc_sol = solver.primal_solution();
     }
     return mpc_sol;

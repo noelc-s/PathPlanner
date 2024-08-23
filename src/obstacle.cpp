@@ -1,7 +1,7 @@
 #include "../inc/obstacle.h"
 
-Obstacle::Obstacle() {
-    Obs obstacle;
+ObstacleCollector::ObstacleCollector() {
+    Obstacle obstacle;
     const int num_obstacle_faces = 4;
     obstacle.A.resize(num_obstacle_faces, 4);
     obstacle.v.resize(num_obstacle_faces, 2);
@@ -64,7 +64,7 @@ Obstacle::Obstacle() {
     freq.push_back(dist_freq(gen));
 }
 
-void Obstacle::updateObstaclePositions(double t) {
+void ObstacleCollector::updateObstaclePositions(double t) {
     for (int o = 0; o < obstacles.size(); o++)
     {
         double x_add = 0 * cos(2 * 3.14 * freq[o] * t);
@@ -78,7 +78,7 @@ void Obstacle::updateObstaclePositions(double t) {
     }
 }
 
-void Obstacle::updateObstaclePositions(int o, double x, double y) {
+void ObstacleCollector::updateObstaclePositions(int o, double x, double y) {
 
         obstacles[o].center << x, y;
         obstacles[o].b << b_obs[o](0) + obstacles[o].center(0), b_obs[o](1) - obstacles[o].center(0), b_obs[o](2) + obstacles[o].center(1), b_obs[o](3) - obstacles[o].center(1);
@@ -88,3 +88,24 @@ void Obstacle::updateObstaclePositions(int o, double x, double y) {
             -obstacles[o].b(1), obstacles[o].b(2);
 }
 
+void getSeparatingHyperplane(Obstacle obstacle, vector_t x, matrix_t &A_hyp, vector_t &b_hyp)
+{
+    int closest_point = -1;
+    double closest_dist = 1e3;
+    for (int j = 0; j < obstacle.v.rows(); j++) {
+        double dist_to_point = (x - obstacle.v.block(j,0,1,2).transpose()).squaredNorm();
+        if (dist_to_point < closest_dist) {
+            closest_point = j;
+            closest_dist = dist_to_point;
+        }
+    }
+    vector_t faces = obstacle.Adjacency.block(closest_point,0,1,obstacle.Adjacency.cols()).transpose();
+    Eigen::Array<bool, Eigen::Dynamic, 1> inds = (obstacle.A.block(0,0,obstacle.A.rows(),2) * x - obstacle.b).array() > -1e-2 && faces.array() > 0;
+    for (int j = 0; j < inds.size(); j++) {
+        if (inds(j) > 0) {
+            A_hyp += obstacle.A.block(j,0,1,2);
+        }   
+    }
+    A_hyp = A_hyp / A_hyp.norm();
+    b_hyp = A_hyp * obstacle.v.block(closest_point,0,1,2).transpose();
+}

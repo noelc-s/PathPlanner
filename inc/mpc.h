@@ -24,14 +24,14 @@ public:
     void buildDynamicEquality();
     void buildConstraintInequality(const std::vector<matrix_t> A_constraint, const std::vector<vector_t> b_constraint);
     void buildCost();
-    vector_t buildFromOptimalGraphSolve(const Obstacle O,
+    vector_t buildFromOptimalGraphSolve(const ObstacleCollector O,
                          const std::vector<int> optimalInd, const std::vector<vector_t> optimalPath,
                          const vector_t& xg);
     void initialize();
     void updateConstraints(const vector_t& x0);
-    void updateConstraintsSQP(Obstacle O, vector_t sol, const vector_t& xg);
+    void updateConstraintsSQP(ObstacleCollector O, vector_t sol, const vector_t& xg);
     void updateCost();
-    vector_t solve(Obstacle O, vector_t sol, const vector_t& x0, const vector_t& xg); 
+    vector_t solve(ObstacleCollector O, vector_t sol, const vector_t& x0, const vector_t& xg); 
     void reset();
 
 private:

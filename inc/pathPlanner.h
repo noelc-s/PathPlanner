@@ -25,7 +25,7 @@ struct BezierParams
 class PathPlanner {
 public:
     PathPlanner(int state_size, int input_size, const MPC_Params mpc_params, const Planner_Params p_p);
-    void initialize(const Obstacle O);
+    void initialize(const ObstacleCollector O);
 
     Planner_Params params_;
 
@@ -50,12 +50,15 @@ public:
 
     BezierParams B_p;
 
+    double percentageEdgesRemovedWithHeuristic = 0;
+    bool optimalPathFound = false;
+
     void F_G(const matrix_t& xbar, const matrix_t& f_xbar, const matrix_t& g_xbar, matrix_t& F, matrix_t& G);
 
-    void cutGraph(Obstacle O);
-    void cutGraph(Obstacle O, std::ofstream &output_file);
+    void cutGraph(ObstacleCollector O);
+    void cutGraph(ObstacleCollector O, std::ofstream &output_file);
     void findPath(vector_t starting_location, vector_t ending_location, std::vector<int> &optimalInd, std::vector<vector_t> &optimalPath);
-    void refineWithMPC(vector_t &sol, Obstacle O, std::vector<int> optimalInd, std::vector<vector_t> optimalPath, vector_t starting_loc, vector_t ending_loc);
+    void refineWithMPC(vector_t &sol, ObstacleCollector O, std::vector<int> optimalInd, std::vector<vector_t> optimalPath, vector_t starting_loc, vector_t ending_loc);
 };
 
 std::vector<vector_4t> generateUniformPoints(int n, double min_x, double max_x, double min_y, double max_y,

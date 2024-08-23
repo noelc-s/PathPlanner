@@ -9,6 +9,7 @@ using vector_2t = Eigen::Matrix<double, 2, 1>;
 using vector_4t = Eigen::Matrix<double, 4, 1>;
 using matrix_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
 using vector_t = Eigen::Matrix<double, Eigen::Dynamic, 1>;
+using int_vector_t = Eigen::Matrix<int, Eigen::Dynamic, 1>;
 
 // Define a property that includes a matrix_t
 struct EdgeProperties {

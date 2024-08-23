@@ -57,7 +57,7 @@ if plot_edges
         x_edges = [x_edges [center(Edges(i,1)+1,1),center(Edges(i,2)+1,1)] NaN];
         y_edges = [y_edges [center(Edges(i,1)+1,2),center(Edges(i,2)+1,2)] NaN];
     end
-    plot(x_edges, y_edges,'k');
+    plot(x_edges, y_edges,'k','linewidth',2);
 
     for j = 1:size(Path{1})-1
         v = [Points(Path{1}(j)+1,:)' Points(Path{1}(j+1)+1,:)'];

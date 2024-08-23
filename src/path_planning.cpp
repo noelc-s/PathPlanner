@@ -31,7 +31,7 @@ int main()
     starting_loc << 0,0 , 0, 0;
     ending_loc << 1,0, 0, 0;
 
-    Obstacle O = Obstacle();
+    ObstacleCollector O = ObstacleCollector();
     logObstacles(O.obstacles, graph_file);
 
     Timer timer(true);
@@ -69,6 +69,8 @@ int main()
         log(sol, output_file, "MPC{" + (std::to_string)(i + 1) + "}");
 
         starting_loc << sol.segment(4,4);
+
+        std::cout << std::endl;
     }
 
     output_file.close();

@@ -1,7 +1,5 @@
 #include "../inc/graph.h"
 
-#define PRINT_TIMING true
-
 bool adjacent(vector_4t p1, vector_4t p2)
 {
     return (p1 - p2).norm() < distance_tol;
@@ -81,7 +79,7 @@ GraphQP::GraphQP()
 
 }
 
-void GraphQP::setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges, const Obs obstacle)
+void GraphQP::setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges, const Obstacle obstacle)
 {
     // decision variables are lambda_i and slack_i for each adj pt. [l1 l2 ... s1 s2 ...]
     // decision variables per point = number of vertices in edge control point polytope + number of obstacle faces;
@@ -117,7 +115,7 @@ void GraphQP::setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges,
     // std::cout << instance.upper_bounds << std::endl;
 }
 
-void GraphQP::buildConstraintMatrix(Obs obstacle, const std::vector<matrix_t> edges)
+void GraphQP::buildConstraintMatrix(Obstacle obstacle, const std::vector<matrix_t> edges)
 {
     const int num_obstacle_faces = obstacle.b.size();
     std::vector<Triplet<double>> tripletsA;
@@ -173,7 +171,42 @@ void GraphQP::buildConstraintMatrix(Obs obstacle, const std::vector<matrix_t> ed
     constraint_matrix.setFromTriplets(tripletsA.begin(), tripletsA.end());
 }
 
-void GraphQP::updateConstraints(OsqpSolver &solver, Obs obstacle, const std::vector<matrix_t> edges)
+void GraphQP::ObstacleMembershipHeuristic(Obstacle obstacle, const std::vector<matrix_t> edges, int_vector_t &member)
+{
+    // 0 if out, 1 if in, 2 if uncertain
+    #pragma omp parallel for
+    for (int i = 0; i < edges.size(); i++) {
+        matrix_t coll = (obstacle.A * edges[i]).colwise() - obstacle.b;
+        if (((coll.array() <= 0).colwise().all()).any()) {
+            member[i] = 1;
+        } else {
+            matrix_t A_hyp(1,2);
+            matrix_t A_hyp_(1,2);
+            vector_t b_hyp_(1);
+            vector_t b_hyp(1);
+            A_hyp.setZero();
+            b_hyp.setZero();
+            A_hyp_.setZero();
+            b_hyp_.setZero();
+            for (int j = 0; j < edges[i].cols(); j++) {
+                getSeparatingHyperplane(obstacle, edges[i].block(0,j,2, 1), A_hyp_, b_hyp_);
+                A_hyp += A_hyp_;
+                b_hyp += b_hyp_;
+            }
+            A_hyp /= edges[i].cols();
+            b_hyp /= edges[i].cols();
+            
+            bool safe = (((A_hyp * edges[i].block(0, 0, 2, edges[i].cols())).array() - b_hyp(0)).array() >= 0).all();
+            if (safe == 1) {
+                member[i] = 0;
+            } else {
+                member[i] = 2;
+            }
+        }
+    }
+}
+
+void GraphQP::updateConstraints(OsqpSolver &solver, Obstacle obstacle, const std::vector<matrix_t> edges)
 {
     const int total_adjacent_pts = std::accumulate(edges.begin(), edges.end(), 0, 
                                  [](int sum, const matrix_t& mat) { return sum + mat.cols(); }); 
@@ -205,6 +238,56 @@ void GraphQP::updateConstraints(OsqpSolver &solver, Obs obstacle, const std::vec
         {
             lb[constraint_index + 1 + num_reachable_pts + j] = -kInfinity;
             ub[constraint_index + 1 + num_reachable_pts + j] = obstacle.b[j];
+        }
+        constraint_index += 1 + num_reachable_pts + num_obstacle_faces;
+        variable_index += num_reachable_pts + num_obstacle_faces;
+    }
+    timer.time("        Modification:");
+
+    auto status1 = solver.UpdateConstraintMatrix(constraint_matrix);
+    timer.time("        update constraint matrix:");
+    auto status2 = solver.SetBounds(lb, ub);
+    timer.time("        set bounds:");
+}
+
+void GraphQP::updateConstraints(OsqpSolver &solver, Obstacle obstacle, const std::vector<matrix_t> edges, const int_vector_t &member) {
+    // constraint_matrix.setZero();
+    const int num_edges = edges.size();
+    const int num_obstacle_faces = obstacle.b.size();
+
+    int variable_index = 0;
+    int constraint_index = 0;
+    int num_reachable_pts = -1;
+
+    Timer timer(PRINT_TIMING);
+    timer.start();
+    for (int p = 0; p < num_edges; p++)
+    {
+        num_reachable_pts = edges[p].cols();
+    
+        for (int i = 0; i < num_reachable_pts; ++i)
+        {
+            matrix_t constraint(num_obstacle_faces, 1);
+            constraint << obstacle.A * edges[p].block(0, i, edges[p].rows(), 1);
+            for (int j = 0; j < num_obstacle_faces; j++)
+            {
+                if (member(p) == 2) {
+                    constraint_matrix.coeffRef(constraint_index + 1 + num_reachable_pts + j, variable_index + i) = constraint(j);
+                } else {
+                    constraint_matrix.coeffRef(constraint_index + 1 + num_reachable_pts + j, variable_index + i) = 0;
+                }
+            }
+        }
+
+        for (int j = 0; j < num_obstacle_faces; ++j)
+        {
+            if (member(p) == 2) {
+                lb[constraint_index + 1 + num_reachable_pts + j] = -kInfinity;
+                ub[constraint_index + 1 + num_reachable_pts + j] = obstacle.b[j];
+            } else {
+                lb[constraint_index + 1 + num_reachable_pts + j] = -kInfinity;
+                ub[constraint_index + 1 + num_reachable_pts + j] = 1;
+            }
         }
         constraint_index += 1 + num_reachable_pts + num_obstacle_faces;
         variable_index += num_reachable_pts + num_obstacle_faces;
@@ -253,8 +336,21 @@ void cutGraphEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std:
     }
 }
 
-void updateEdgeVertices() {
-
+void cutGraphEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std::pair<int,int>> vertexInds, 
+                    const int num_obstacle_faces, VectorXd optimal_solution, int_vector_t membership)
+{
+    int dec_var_ind = 0;
+    for (int i = 0; i < edges.size(); i++) {
+        if (membership[i] == 1) {
+            remove_edge(vertexInds[i].first, vertexInds[i].second, g);
+        } else if (membership[i] == 2) {
+            if (optimal_solution.segment(dec_var_ind + edges[i].cols(),num_obstacle_faces).norm() < viol_tol)
+            {
+                remove_edge(vertexInds[i].first, vertexInds[i].second, g);
+            }
+            dec_var_ind += edges[i].cols() + num_obstacle_faces;
+        }
+    }
 }
 
 void solveGraph(std::vector<vector_4t> points, vector_4t starting_loc, vector_4t ending_loc,

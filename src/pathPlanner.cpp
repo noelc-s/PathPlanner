@@ -1,7 +1,5 @@
 #include "../inc/pathPlanner.h"
 
-#define PRINT_TIMING true
-
 PathPlanner::PathPlanner(int state_size, int input_size, const MPC_Params mpc_params, const Planner_Params p_p)
     : state_size_(state_size), params_(p_p)
 {
@@ -55,7 +53,7 @@ void PathPlanner::F_G(const matrix_t &xbar, const matrix_t &f_xbar, const matrix
     B->F_G(B_p.A_x, B_p.b_x, B_p.H, B_p.m_ind, xbar, f_xbar, g_xbar, B_p.gamma, B_p.Q, B_p.Lg, B_p.Lf, B_p.e_bar, B_p.K, B_p.u_max, F, G);
 }
 
-void PathPlanner::initialize(const Obstacle O)
+void PathPlanner::initialize(const ObstacleCollector O)
 {
 
     graphSettings.verbose = false;
@@ -101,16 +99,32 @@ std::vector<vector_4t> generateUniformPoints(int n, double min_x, double max_x, 
     return points;
 }
 
-void PathPlanner::cutGraph(Obstacle O)
+void PathPlanner::cutGraph(ObstacleCollector O)
 {
     cut_graph.clear();
     boost::copy_graph(graph, cut_graph);
     Timer timer(PRINT_TIMING);
+    int_vector_t membership(edges.size());
 
     for (auto obstacle : O.obstacles)
     {
         timer.start();
-        graphQP.updateConstraints(graphSolver, obstacle, edges);
+        graphQP.ObstacleMembershipHeuristic(obstacle, edges, membership);
+        timer.time("    Heuristic check: ");
+        //////////////////////////////////////////////
+        std::vector<matrix_t> uncertain_edges;
+        for (size_t i = 0; i < membership.size(); ++i) {
+            if (membership[i] == 2) {
+                uncertain_edges.push_back(edges[i]);
+            }
+        }
+        timer.time("    Copy Edges: ");
+        graphQP.setupQP(graphInstance, uncertain_edges, obstacle);
+        graphQP.initializeQP(graphSolver, graphInstance, graphSettings);
+
+        // graphQP.updateConstraints(graphSolver, obstacle, edges, membership);
+        // graphQP.updateConstraints(graphSolver, obstacle, edges);
+        //////////////////////////////////////////////
         timer.time("    Update constraints: ");
         graphQP.solveQP(graphSolver);
         timer.time("    Solve: ");
@@ -119,12 +133,18 @@ void PathPlanner::cutGraph(Obstacle O)
         VectorXd optimal_solution = graphSolver.primal_solution();
 
         timer.start();
-        cutGraphEdges(cut_graph, edges, vertexInds, obstacle.b.size(), optimal_solution);
+        //////////////////////////////////////////////
+        // cutGraphEdges(cut_graph, edges, vertexInds, obstacle.b.size(), optimal_solution);
+        cutGraphEdges(cut_graph, edges, vertexInds, obstacle.b.size(), optimal_solution, membership);
+        //////////////////////////////////////////////
         timer.time("    Cut graph edges: ");
+         
+        percentageEdgesRemovedWithHeuristic = 1. - (float)uncertain_edges.size() / edges.size();
+        // std::cout << "Percentage of nodes removed with heuristic: " <<  << std::endl;
     }
 }
 
-void PathPlanner::cutGraph(Obstacle O, std::ofstream &output_file)
+void PathPlanner::cutGraph(ObstacleCollector O, std::ofstream &output_file)
 {
     cutGraph(O);
     if (params_.log_edges)
@@ -146,20 +166,27 @@ void PathPlanner::findPath(vector_t starting_location, vector_t ending_location,
     {
         if (v < 0 || v > points.size())
         {
-            std::cout << "No optimal path found" << std::endl;
+            optimalPathFound = 0;
             return;
         }
         optimalInd.push_back(v);
         optimalPath.push_back(points[v]);
     }
+    optimalPathFound = 1;
     optimalInd.push_back(vertex(starting_ind, cut_graph));
     optimalPath.push_back(points[vertex(starting_ind, cut_graph)]);
 }
 
-void PathPlanner::refineWithMPC(vector_t &sol, Obstacle O, std::vector<int> optimalInd, std::vector<vector_t> optimalPath, vector_t starting_loc, vector_t ending_loc) {
+void PathPlanner::refineWithMPC(vector_t &sol, ObstacleCollector O, std::vector<int> optimalInd, std::vector<vector_t> optimalPath, vector_t starting_loc, vector_t ending_loc) {
+        Timer timer(PRINT_TIMING);
+        timer.start();
         sol = mpc_->buildFromOptimalGraphSolve(O, optimalInd, optimalPath, ending_loc);
+        timer.time("    Build Graph from Optimal Solve: ");
         mpc_->updateConstraints(starting_loc);
+        timer.time("    Update Constraints: ");
         mpc_->updateCost();
+        timer.time("    Update Cost: ");
 
         sol = mpc_->solve(O, sol, starting_loc, ending_loc);
+        timer.time("    Solve: ");
 }

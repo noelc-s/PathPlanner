@@ -6,16 +6,20 @@ void Timer::start() {
     start_time = std::chrono::high_resolution_clock::now();
 }
 
-void Timer::time() {
+double Timer::time() {
     end_time = std::chrono::high_resolution_clock::now();
     duration = end_time - start_time;
-    std::cout << duration.count()*1e-6 << " ms" << std::endl;
+    double dur_ms =  duration.count()*1e-6;
+    if (print_)
+        std::cout << dur_ms << " ms" << std::endl;
     start_time = end_time;
+    return dur_ms;
 }
 
-void Timer::time(std::string info) {
-    std::cout << info;
-    time();
+double Timer::time(std::string info) {
+    if (print_)
+        std::cout << info;
+    return time();
 }
 
 void loadPlannerParams(std::string filename, Params &p, MPC_Params &mpc_p, Planner_Params &p_p) {
@@ -71,7 +75,7 @@ void logEdges(Graph cut_graph, std::ofstream& file, std::string name) {
     std::cout << "Done Logging " << name << std::endl;
 }
 
-void logObstacles(const std::vector<Obs> obstacles, std::ofstream& file) {
+void logObstacles(const std::vector<Obstacle> obstacles, std::ofstream& file) {
     for (int i = 0; i < obstacles.size(); i++) {
         file << "Obstacle_A{" << i+1 << "}=[" << std::endl;
         file << obstacles[i].A << std::endl;
@@ -83,7 +87,7 @@ void logObstacles(const std::vector<Obs> obstacles, std::ofstream& file) {
     std::cout << "Done Logging obstacles" << std::endl;
 }
 
-void logObstaclePosition(const std::vector<Obs> obstacles, std::ofstream& file, const int i) {
+void logObstaclePosition(const std::vector<Obstacle> obstacles, std::ofstream& file, const int i) {
     file << "Obs{" << i + 1 << "}=[" << std::endl;
     for (int o = 0; o < obstacles.size(); o++)
     {

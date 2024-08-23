@@ -6,6 +6,8 @@
 #include "Types.h"
 #include "obstacle.h"
 
+#define PRINT_TIMING false
+
 class Timer
 {
 public: 
@@ -15,8 +17,8 @@ public:
     std::chrono::duration<double, std::nano> duration;
 
     void start();
-    void time();
-    void time(std::string info);
+    double time();
+    double time(std::string info);
 
     bool print_;
 };
@@ -79,5 +81,5 @@ void log(std::vector<T> data, std::ofstream& file, std::string name,
 
 void log(matrix_t data, std::ofstream& file, std::string name);
 void logEdges(Graph cut_graph, std::ofstream& file, std::string name);
-void logObstacles(const std::vector<Obs> obstacles, std::ofstream& file);
-void logObstaclePosition(const std::vector<Obs> obstacles, std::ofstream& file, const int i);
+void logObstacles(const std::vector<Obstacle> obstacles, std::ofstream& file);
+void logObstaclePosition(const std::vector<Obstacle> obstacles, std::ofstream& file, const int i);
