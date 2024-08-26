@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "-O3 -pthread -pg -fopenmp")
 
-set(bezier_DIR /home/noelcs/repos/BezierTubes/cpp)
+set(bezier_DIR CACHE PATH /home/noelcs/repos/BezierTubes/cpp)
 
 ### OSQP
 find_package(osqp)

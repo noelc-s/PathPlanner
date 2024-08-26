@@ -174,20 +174,18 @@ void GraphQP::buildConstraintMatrix(Obstacle obstacle, const std::vector<matrix_
 void GraphQP::ObstacleMembershipHeuristic(Obstacle obstacle, const std::vector<matrix_t> edges, int_vector_t &member)
 {
     // 0 if out, 1 if in, 2 if uncertain
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for (int i = 0; i < edges.size(); i++) {
+        vector_t A_hyp_(2), A_hyp(2);
+        double b_hyp_, b_hyp;
         matrix_t coll = (obstacle.A * edges[i]).colwise() - obstacle.b;
         if (((coll.array() <= 0).colwise().all()).any()) {
             member[i] = 1;
         } else {
-            matrix_t A_hyp(1,2);
-            matrix_t A_hyp_(1,2);
-            vector_t b_hyp_(1);
-            vector_t b_hyp(1);
             A_hyp.setZero();
-            b_hyp.setZero();
+            b_hyp = 0;
             A_hyp_.setZero();
-            b_hyp_.setZero();
+            b_hyp_ = 0;
             for (int j = 0; j < edges[i].cols(); j++) {
                 getSeparatingHyperplane(obstacle, edges[i].block(0,j,2, 1), A_hyp_, b_hyp_);
                 A_hyp += A_hyp_;
@@ -196,7 +194,7 @@ void GraphQP::ObstacleMembershipHeuristic(Obstacle obstacle, const std::vector<m
             A_hyp /= edges[i].cols();
             b_hyp /= edges[i].cols();
             
-            bool safe = (((A_hyp * edges[i].block(0, 0, 2, edges[i].cols())).array() - b_hyp(0)).array() >= 0).all();
+            bool safe = (((A_hyp.transpose() * edges[i].block(0, 0, 2, edges[i].cols())).array() - b_hyp).array() >= 0).all();
             if (safe == 1) {
                 member[i] = 0;
             } else {

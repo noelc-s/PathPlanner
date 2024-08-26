@@ -88,24 +88,26 @@ void ObstacleCollector::updateObstaclePositions(int o, double x, double y) {
             -obstacles[o].b(1), obstacles[o].b(2);
 }
 
-void getSeparatingHyperplane(Obstacle obstacle, vector_t x, matrix_t &A_hyp, vector_t &b_hyp)
+void getSeparatingHyperplane(Obstacle obstacle, vector_t x, vector_t &A_hyp, double &b_hyp)
 {
     int closest_point = -1;
     double closest_dist = 1e3;
+    double dist_to_point;
+    Eigen::Array<bool, Eigen::Dynamic, 1> inds;
     for (int j = 0; j < obstacle.v.rows(); j++) {
-        double dist_to_point = (x - obstacle.v.block(j,0,1,2).transpose()).squaredNorm();
+        dist_to_point = (x - obstacle.v.block(j,0,1,2).transpose()).squaredNorm();
         if (dist_to_point < closest_dist) {
             closest_point = j;
             closest_dist = dist_to_point;
         }
     }
     vector_t faces = obstacle.Adjacency.block(closest_point,0,1,obstacle.Adjacency.cols()).transpose();
-    Eigen::Array<bool, Eigen::Dynamic, 1> inds = (obstacle.A.block(0,0,obstacle.A.rows(),2) * x - obstacle.b).array() > -1e-2 && faces.array() > 0;
+    inds = (obstacle.A.block(0,0,obstacle.A.rows(),2) * x - obstacle.b).array() > -1e-2 && faces.array() > 0;
     for (int j = 0; j < inds.size(); j++) {
         if (inds(j) > 0) {
-            A_hyp += obstacle.A.block(j,0,1,2);
+            A_hyp += obstacle.A.block(j,0,1,2).transpose();
         }   
     }
     A_hyp = A_hyp / A_hyp.norm();
-    b_hyp = A_hyp * obstacle.v.block(closest_point,0,1,2).transpose();
+    b_hyp = (A_hyp.transpose() * obstacle.v.block(closest_point,0,1,2).transpose()).value();
 }

@@ -23,4 +23,4 @@ public:
     std::vector<double> freq;
 };
 
-void getSeparatingHyperplane(Obstacle obstacle, vector_t x, matrix_t &A_hyp, vector_t &b_hyp);
+void getSeparatingHyperplane(Obstacle obstacle, vector_t x, vector_t &A_hyp, double &b_hyp);

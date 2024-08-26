@@ -224,17 +224,17 @@ void MPC::updateConstraintsSQP(ObstacleCollector O, vector_t sol, const vector_t
         for (auto obstacle : O.obstacles) {
             vector_t x(2);
             x << sol.segment(nx_*i,2);
-            matrix_t A_hyp(1,2);
-            vector_t b_hyp(1);
+            vector_t A_hyp(2);
+            double b_hyp;
             A_hyp.setZero();
-            b_hyp.setZero();
+            b_hyp = 0;
             getSeparatingHyperplane(obstacle, x, A_hyp, b_hyp);
 
-            double v = (A_hyp * x - b_hyp).maxCoeff();
+            double v = (A_hyp.transpose() * x - b_hyp);
             if (v < max_viol) {
-                A << A_hyp,0,0;
+                A << A_hyp.transpose(),0,0;
                 b << b_hyp;
-                b += mpc_params_.buffer*vector_t::Ones(b_hyp.size());
+                b += mpc_params_.buffer*vector_t::Ones(1);
                 max_viol = v;
             }
         }
