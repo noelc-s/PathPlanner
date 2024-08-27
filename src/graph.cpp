@@ -174,7 +174,7 @@ void GraphQP::buildConstraintMatrix(Obstacle obstacle, const std::vector<matrix_
 void GraphQP::ObstacleMembershipHeuristic(Obstacle obstacle, const std::vector<matrix_t> edges, int_vector_t &member)
 {
     // 0 if out, 1 if in, 2 if uncertain
-    // #pragma omp parallel for
+    #pragma omp parallel for
     for (int i = 0; i < edges.size(); i++) {
         vector_t A_hyp_(2), A_hyp(2);
         double b_hyp_, b_hyp;

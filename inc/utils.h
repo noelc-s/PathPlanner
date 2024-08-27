@@ -6,7 +6,7 @@
 #include "Types.h"
 #include "obstacle.h"
 
-#define PRINT_TIMING true
+#define PRINT_TIMING false
 
 class Timer
 {

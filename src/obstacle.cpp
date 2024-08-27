@@ -94,6 +94,9 @@ void getSeparatingHyperplane(Obstacle obstacle, vector_t x, vector_t &A_hyp, dou
     double closest_dist = 1e3;
     double dist_to_point;
     Eigen::Array<bool, Eigen::Dynamic, 1> inds;
+
+    // (obstacle.v.block(0,0,obstacle.v.rows(),2).rowwise() - x.transpose()).rowwise().squaredNorm().minCoeff(&closest_point);
+
     for (int j = 0; j < obstacle.v.rows(); j++) {
         dist_to_point = (x - obstacle.v.block(j,0,1,2).transpose()).squaredNorm();
         if (dist_to_point < closest_dist) {

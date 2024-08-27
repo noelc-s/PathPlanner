@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "-O3 -pthread -pg -fopenmp")
 
-set(bezier_DIR CACHE PATH /home/noelcs/repos/BezierTubes/cpp)
+set(bezier_DIR /home/noelcs/repos/BezierTubes/cpp CACHE PATH "Path to BezierTubes dir")
 
 ### OSQP
 find_package(osqp)
@@ -56,6 +56,29 @@ target_link_libraries(integrator PUBLIC graph)
 # export CC=/usr/bin/gcc-8
 # export CXX=/usr/bin/g++-8
 
-# find_package(CUDA REQUIRED)
-# set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_30")
-# cuda_add_executable(cuda src/project_onto_obst.cu)
+find_package(Eigen3 REQUIRED)
+
+option( CORE_USE_CUDA    "Use CUDA to speed up certain parts of the code."              ON )
+if (CORE_USE_CUDA)
+    MESSAGE( STATUS ">> --------------  USING CUDA --------------" )
+    # set( CUDA_TOOLKIT_ROOT_DIR "/opt/cuda" )
+    # set(CMAKE_C_COMPILER   /opt/cuda/bin/gcc)
+    # set(CMAKE_CXX_COMPILER /opt/cuda/bin/g++)
+
+    find_package(CUDA REQUIRED)
+    add_definitions(-DUSE_CUDA)
+
+
+    find_package(CUDA REQUIRED)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_30")
+
+    set(SOURCE_FILES
+        src/kernel.cu
+    )
+    # add_executable(cuda src/main.cpp ${SOURCE_FILES})
+    cuda_add_executable(cuda src/main.cpp ${SOURCE_FILES})
+    target_link_libraries(cuda ${CUDA_LIBRARIES} graph)
+
+    target_include_directories( cuda PUBLIC ${PROJECT_SOURCE_DIR}/inc)
+    target_link_libraries(cuda Eigen3::Eigen)
+endif()
