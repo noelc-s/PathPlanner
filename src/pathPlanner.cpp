@@ -1,4 +1,5 @@
 #include "../inc/pathPlanner.h"
+#include "../inc/kernel.hpp"
 
 PathPlanner::PathPlanner(int state_size, int input_size, const MPC_Params mpc_params, const Planner_Params p_p)
     : state_size_(state_size), params_(p_p)
@@ -109,7 +110,8 @@ void PathPlanner::cutGraph(ObstacleCollector O)
     for (auto obstacle : O.obstacles)
     {
         timer.start();
-        graphQP.ObstacleMembershipHeuristic(obstacle, edges, membership);
+        // graphQP.ObstacleMembershipHeuristic(obstacle, edges, membership);
+        Kernel::GraphQP_ObstacleMembershipHeuristic(obstacle, edges, membership);
         timer.time("    Heuristic check: ");
         //////////////////////////////////////////////
         std::vector<matrix_t> uncertain_edges;

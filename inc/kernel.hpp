@@ -8,7 +8,7 @@
 
 namespace Kernel
 {
-    void GraphQP_ObstacleMembershipHeuristic(Obstacle obstacle, const std::vector<Eigen::MatrixXd>& edges, std::vector<int>& member);
+    void GraphQP_ObstacleMembershipHeuristic(Obstacle obstacle, const std::vector<Eigen::MatrixXd>& edges, int_vector_t& member);
 }
 
 #endif

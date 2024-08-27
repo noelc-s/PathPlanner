@@ -105,7 +105,7 @@ namespace Kernel
         }
     }
 
-    void GraphQP_ObstacleMembershipHeuristic(Obstacle obstacle, const std::vector<Eigen::MatrixXd> &edges, std::vector<int> &member)
+    void GraphQP_ObstacleMembershipHeuristic(Obstacle obstacle, const std::vector<Eigen::MatrixXd> &edges, int_vector_t &member)
     {
         int num_edges = edges.size();
         int member_size = num_edges * sizeof(int);
@@ -146,9 +146,9 @@ namespace Kernel
             }
         }
 
-        cudaEvent_t start, stop;
-        cudaEventCreate(&start);
-        cudaEventCreate(&stop);
+        // cudaEvent_t start, stop;
+        // cudaEventCreate(&start);
+        // cudaEventCreate(&stop);
 
         // Copy data to device
         cudaMemcpy(d_obstacle_A, obstacle.A.data(), obstacle_A_size, cudaMemcpyHostToDevice);
@@ -162,17 +162,17 @@ namespace Kernel
         int blockSize = 256;
         int gridSize = (num_edges + blockSize - 1) / blockSize;
 
-        cudaEventRecord(start);
+        // cudaEventRecord(start);
         obstacleMembershipHeuristic<<<gridSize, blockSize>>>(d_obstacle_A, d_obstacle_b, d_obstacle_Adj, d_obstacle_v, d_edges, d_member, num_edges);
-        cudaEventRecord(stop);
+        // cudaEventRecord(stop);
 
         // Copy the result back to the host
         cudaMemcpy(member.data(), d_member, member_size, cudaMemcpyDeviceToHost);
 
-        cudaEventSynchronize(stop);
-        float milliseconds = 0;
-        cudaEventElapsedTime(&milliseconds, start, stop);
-        printf("That took: %f ms\n", milliseconds);
+        // cudaEventSynchronize(stop);
+        // float milliseconds = 0;
+        // cudaEventElapsedTime(&milliseconds, start, stop);
+        // printf("That took: %f ms\n", milliseconds);
 
         // Free device memory
         cudaFree(d_obstacle_A);

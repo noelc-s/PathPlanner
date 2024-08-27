@@ -41,10 +41,40 @@ set_property(TARGET bezier PROPERTY IMPORTED_LOCATION ${bezier_DIR}/build/libBEZ
 include_directories(bezier INTERFACE ${bezier_DIR}/inc)
 ####
 
+### CUDA
+find_package(Eigen3 REQUIRED)
+MESSAGE( STATUS ">> --------------  USING CUDA --------------" )
+# set( CUDA_TOOLKIT_ROOT_DIR "/opt/cuda" )
+# set(CMAKE_C_COMPILER   /opt/cuda/bin/gcc)
+# set(CMAKE_CXX_COMPILER /opt/cuda/bin/g++)
+
+find_package(CUDA REQUIRED)
+add_definitions(-DUSE_CUDA)
+
+
+find_package(CUDA REQUIRED)
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_30")
+
+set(CUDA_SOURCES
+    src/kernel.cu
+)
+
+cuda_add_library(cuda_kernel STATIC ${CUDA_SOURCES})
+target_include_directories(cuda_kernel PUBLIC inc/)
+target_link_libraries(cuda_kernel Eigen3::Eigen)
+
+# add_executable(cuda src/main.cpp ${SOURCE_FILES})
+cuda_add_executable(cuda src/main.cpp ${CUDA_SOURCES} src/obstacle.cpp)
+target_link_libraries(cuda ${CUDA_LIBRARIES})
+
+target_include_directories( cuda PUBLIC inc/)
+target_link_libraries(cuda Eigen3::Eigen)
+###
+
 find_package(yaml-cpp REQUIRED)
 
 add_library(graph STATIC src/obstacle.cpp src/pathPlanner.cpp src/graph.cpp src/mpc.cpp src/utils.cpp)
-target_link_libraries(graph PUBLIC osqp-cpp bezier yaml-cpp)
+target_link_libraries(graph PUBLIC osqp-cpp bezier yaml-cpp cuda_kernel)
 
 add_executable(path_planning src/path_planning.cpp)
 target_link_libraries(path_planning PUBLIC graph)
@@ -55,30 +85,3 @@ target_link_libraries(integrator PUBLIC graph)
 # For some reason cuda cannot compile with gcc > 8
 # export CC=/usr/bin/gcc-8
 # export CXX=/usr/bin/g++-8
-
-find_package(Eigen3 REQUIRED)
-
-option( CORE_USE_CUDA    "Use CUDA to speed up certain parts of the code."              ON )
-if (CORE_USE_CUDA)
-    MESSAGE( STATUS ">> --------------  USING CUDA --------------" )
-    # set( CUDA_TOOLKIT_ROOT_DIR "/opt/cuda" )
-    # set(CMAKE_C_COMPILER   /opt/cuda/bin/gcc)
-    # set(CMAKE_CXX_COMPILER /opt/cuda/bin/g++)
-
-    find_package(CUDA REQUIRED)
-    add_definitions(-DUSE_CUDA)
-
-
-    find_package(CUDA REQUIRED)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_30")
-
-    set(SOURCE_FILES
-        src/kernel.cu
-    )
-    # add_executable(cuda src/main.cpp ${SOURCE_FILES})
-    cuda_add_executable(cuda src/main.cpp ${SOURCE_FILES})
-    target_link_libraries(cuda ${CUDA_LIBRARIES} graph)
-
-    target_include_directories( cuda PUBLIC ${PROJECT_SOURCE_DIR}/inc)
-    target_link_libraries(cuda Eigen3::Eigen)
-endif()
