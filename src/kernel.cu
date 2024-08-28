@@ -87,10 +87,6 @@ namespace Kernel
             A_hyp[1] /= 4;
             b_hyp /= 4;
 
-            // printf("%f\n", A_hyp[0]);
-            // printf("%f\n", A_hyp[1]);
-            // printf("%f\n", b_hyp);
-
             bool safe = true;
             for (int j = 0; j < 4; j++) {
                 double result = A_hyp[0] * edge[j * 4] + A_hyp[1] * edge[j * 4 + 1] - b_hyp;
@@ -105,7 +101,7 @@ namespace Kernel
         }
     }
 
-    void GraphQP_ObstacleMembershipHeuristic(Obstacle obstacle, const std::vector<Eigen::MatrixXd> &edges, int_vector_t &member)
+    void GraphQP_ObstacleMembershipHeuristic(Obstacle obstacle, const std::vector<matrix_t> &edges, int_vector_t &member)
     {
         int num_edges = edges.size();
         int member_size = num_edges * sizeof(int);
@@ -155,11 +151,10 @@ namespace Kernel
         cudaMemcpy(d_obstacle_b, obstacle.b.data(), obstacle_b_size, cudaMemcpyHostToDevice);
         cudaMemcpy(d_obstacle_Adj, obstacle.Adjacency.data(), obstacle_Adj_size, cudaMemcpyHostToDevice);
         cudaMemcpy(d_obstacle_v, obstacle.v.data(), obstacle_v_size, cudaMemcpyHostToDevice);
-        cudaMemcpy(d_obstacle_b, obstacle.b.data(), obstacle_b_size, cudaMemcpyHostToDevice);
         cudaMemcpy(d_edges, edges_flat, edges_size, cudaMemcpyHostToDevice);
 
         // Launch the kernel
-        int blockSize = 256;
+        int blockSize = 512;
         int gridSize = (num_edges + blockSize - 1) / blockSize;
 
         // cudaEventRecord(start);
@@ -190,7 +185,7 @@ namespace Kernel
 //     // #pragma omp parallel for
 //     for (int i = 0; i < edges.size(); i++) {
 //         vector_t A_hyp_(2), A_hyp(2);
-//         double b_hyp_, b_hyp;
+//         scalar_t b_hyp_, b_hyp;
 //         matrix_t coll = (obstacle.A * edges[i]).colwise() - obstacle.b;
 //         if (((coll.array() <= 0).colwise().all()).any()) {
 //             member[i] = 1;
@@ -217,11 +212,11 @@ namespace Kernel
 //     }
 // }
 
-// void getSeparatingHyperplane(Obstacle obstacle, vector_t x, vector_t &A_hyp, double &b_hyp)
+// void getSeparatingHyperplane(Obstacle obstacle, vector_t x, vector_t &A_hyp, scalar_t &b_hyp)
 // {
 //     int closest_point = -1;
-//     double closest_dist = 1e3;
-//     double dist_to_point;
+//     scalar_t closest_dist = 1e3;
+//     scalar_t dist_to_point;
 //     Eigen::Array<bool, Eigen::Dynamic, 1> inds;
 
 //     // (obstacle.v.block(0,0,obstacle.v.rows(),2).rowwise() - x.transpose()).rowwise().squaredNorm().minCoeff(&closest_point);

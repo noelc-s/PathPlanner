@@ -15,12 +15,12 @@ class ObstacleCollector {
 public:
     ObstacleCollector();
 
-    void updateObstaclePositions(double t);
-    void updateObstaclePositions(int o, double x, double y);
+    void updateObstaclePositions(scalar_t t);
+    void updateObstaclePositions(int o, scalar_t x, scalar_t y);
     
     std::vector<Obstacle> obstacles;
     std::vector<vector_t> b_obs;
-    std::vector<double> freq;
+    std::vector<scalar_t> freq;
 };
 
-void getSeparatingHyperplane(Obstacle obstacle, vector_t x, vector_t &A_hyp, double &b_hyp);
+void getSeparatingHyperplane(Obstacle obstacle, vector_t x, vector_t &A_hyp, scalar_t &b_hyp);

@@ -23,15 +23,16 @@ ObstacleCollector::ObstacleCollector() {
     std::uniform_real_distribution<> dis_y(-2, 2);
     std::uniform_real_distribution<> dist_freq(1, 3);
 
-    double x_rand = dis_x(gen);
-    double y_rand = dis_y(gen);
-    obstacle.center << 0.5, 0;
+    scalar_t x_rand = dis_x(gen);
+    scalar_t y_rand = dis_y(gen);
+    obstacle.center << 0.5,0;
     // obstacle.center << x_rand, y_rand;
-    obstacle.b << 0.15 + obstacle.center(0), 0.15 - obstacle.center(0), 0.15 + obstacle.center(1), 0.15 - obstacle.center(1);
-    obstacle.v << 0.15 + obstacle.center(0), 0.15 + obstacle.center(1),
-        0.15 + obstacle.center(0), -0.15 + obstacle.center(1),
-        -0.15 + obstacle.center(0), -0.15 + obstacle.center(1),
-        -0.15 + obstacle.center(0), 0.15 + obstacle.center(1);
+    scalar_t obstacle_size = 0.16;
+    obstacle.b << obstacle_size + obstacle.center(0), obstacle_size - obstacle.center(0), obstacle_size + obstacle.center(1), obstacle_size - obstacle.center(1);
+    obstacle.v << obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1),
+        obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
+        -obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
+        -obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1);
     obstacle.center << 0,0; // center should be difference in motion from IC
     b_obs.push_back(obstacle.b);
     obstacles.push_back(obstacle);
@@ -41,11 +42,11 @@ ObstacleCollector::ObstacleCollector() {
     y_rand = dis_y(gen);
     // obstacle.center << x_rand, y_rand;
     obstacle.center << -0.5, 0;
-    obstacle.b << 0.15 + obstacle.center(0), 0.15 - obstacle.center(0), 0.15 + obstacle.center(1), 0.15 - obstacle.center(1);
-    obstacle.v << 0.15 + obstacle.center(0), 0.15 + obstacle.center(1),
-        0.15 + obstacle.center(0), -0.15 + obstacle.center(1),
-        -0.15 + obstacle.center(0), -0.15 + obstacle.center(1),
-        -0.15 + obstacle.center(0), 0.15 + obstacle.center(1);
+    obstacle.b << obstacle_size + obstacle.center(0), obstacle_size - obstacle.center(0), obstacle_size + obstacle.center(1), obstacle_size - obstacle.center(1);
+    obstacle.v << obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1),
+        obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
+        -obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
+        -obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1);
     obstacle.center << 0,0; // center should be difference in motion from IC
     b_obs.push_back(obstacle.b);
     obstacles.push_back(obstacle);
@@ -54,21 +55,21 @@ ObstacleCollector::ObstacleCollector() {
     // x_rand = dis_x(gen);
     // y_rand = dis_y(gen);
     // obstacle.center << 0.3, -0.3;
-    // obstacle.b << 0.15 + obstacle.center(0), 0.15 - obstacle.center(0), 0.15 + obstacle.center(1), 0.15 - obstacle.center(1);
-    // obstacle.v << 0.15 + obstacle.center(0), 0.15 + obstacle.center(1),
-    //     0.15 + obstacle.center(0), -0.15 + obstacle.center(1),
-    //     -0.15 + obstacle.center(0), -0.15 + obstacle.center(1),
-    //     -0.15 + obstacle.center(0), 0.15 + obstacle.center(1);
+    // obstacle.b << obstacle_size + obstacle.center(0), obstacle_size - obstacle.center(0), obstacle_size + obstacle.center(1), obstacle_size - obstacle.center(1);
+    // obstacle.v << obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1),
+    //     obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
+    //     -obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
+    //     -obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1);
     // b_obs.push_back(obstacle.b);
     // obstacles.push_back(obstacle);
-    freq.push_back(dist_freq(gen));
+    // freq.push_back(dist_freq(gen));
 }
 
-void ObstacleCollector::updateObstaclePositions(double t) {
+void ObstacleCollector::updateObstaclePositions(scalar_t t) {
     for (int o = 0; o < obstacles.size(); o++)
     {
-        double x_add = 0 * cos(2 * 3.14 * freq[o] * t);
-        double y_add = 2 * sin(2 * 3.14 * freq[o] * t);
+        scalar_t x_add = 0 * cos(2 * 3.14 * freq[o] * t);
+        scalar_t y_add = 2 * sin(2 * 3.14 * freq[o] * t);
         obstacles[o].center << x_add, y_add;
         obstacles[o].b << b_obs[o](0) + obstacles[o].center(0), b_obs[o](1) - obstacles[o].center(0), b_obs[o](2) + obstacles[o].center(1), b_obs[o](3) - obstacles[o].center(1);
         obstacles[o].v << obstacles[o].b(0), obstacles[o].b(2),
@@ -78,7 +79,7 @@ void ObstacleCollector::updateObstaclePositions(double t) {
     }
 }
 
-void ObstacleCollector::updateObstaclePositions(int o, double x, double y) {
+void ObstacleCollector::updateObstaclePositions(int o, scalar_t x, scalar_t y) {
 
         obstacles[o].center << x, y;
         obstacles[o].b << b_obs[o](0) + obstacles[o].center(0), b_obs[o](1) - obstacles[o].center(0), b_obs[o](2) + obstacles[o].center(1), b_obs[o](3) - obstacles[o].center(1);
@@ -88,11 +89,11 @@ void ObstacleCollector::updateObstaclePositions(int o, double x, double y) {
             -obstacles[o].b(1), obstacles[o].b(2);
 }
 
-void getSeparatingHyperplane(Obstacle obstacle, vector_t x, vector_t &A_hyp, double &b_hyp)
+void getSeparatingHyperplane(Obstacle obstacle, vector_t x, vector_t &A_hyp, scalar_t &b_hyp)
 {
     int closest_point = -1;
-    double closest_dist = 1e3;
-    double dist_to_point;
+    scalar_t closest_dist = 1e3;
+    scalar_t dist_to_point;
     Eigen::Array<bool, Eigen::Dynamic, 1> inds;
 
     // (obstacle.v.block(0,0,obstacle.v.rows(),2).rowwise() - x.transpose()).rowwise().squaredNorm().minCoeff(&closest_point);

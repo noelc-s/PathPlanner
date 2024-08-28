@@ -14,11 +14,11 @@ public:
     Timer(bool print);
     std::chrono::high_resolution_clock::time_point start_time;
     std::chrono::high_resolution_clock::time_point end_time;
-    std::chrono::duration<double, std::nano> duration;
+    std::chrono::duration<scalar_t, std::nano> duration;
 
     void start();
-    double time();
-    double time(std::string info);
+    scalar_t time();
+    scalar_t time(std::string info);
 
     bool print_;
 };
@@ -39,14 +39,14 @@ struct Params
 struct MPC_Params 
 {
     int N;
-    double dt;
+    scalar_t dt;
     int SQP_iters;
     vector_t stateScaling;
     vector_t inputScaling;
-    double terminalScaling;
-    double tau_max;
+    scalar_t terminalScaling;
+    scalar_t tau_max;
     bool use_previous_reference;
-    double buffer;
+    scalar_t buffer;
 };
 
 void loadPlannerParams(std::string filename, Params &p, MPC_Params &mpc_p, Planner_Params &p_p);

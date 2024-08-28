@@ -6,8 +6,8 @@
 
 using FunctionType = std::function<void(const Eigen::MatrixXd&, const Eigen::MatrixXd&, const Eigen::MatrixXd&, int,
                                          const Eigen::MatrixXd&, const Eigen::MatrixXd&, const Eigen::MatrixXd&,
-                                         int, const std::vector<Eigen::MatrixXd>&, double, double, double,
-                                         const Eigen::MatrixXd&, double, Eigen::MatrixXd&, Eigen::MatrixXd&)>;
+                                         int, const std::vector<Eigen::MatrixXd>&, scalar_t, scalar_t, scalar_t,
+                                         const Eigen::MatrixXd&, scalar_t, Eigen::MatrixXd&, Eigen::MatrixXd&)>;
 
 struct BezierParams
 {
@@ -50,7 +50,7 @@ public:
 
     BezierParams B_p;
 
-    double percentageEdgesRemovedWithHeuristic = 0;
+    scalar_t percentageEdgesRemovedWithHeuristic = 0;
     bool optimalPathFound = false;
 
     void F_G(const matrix_t& xbar, const matrix_t& f_xbar, const matrix_t& g_xbar, matrix_t& F, matrix_t& G);
@@ -61,6 +61,9 @@ public:
     void refineWithMPC(vector_t &sol, ObstacleCollector O, std::vector<int> optimalInd, std::vector<vector_t> optimalPath, vector_t starting_loc, vector_t ending_loc);
 };
 
-std::vector<vector_4t> generateUniformPoints(int n, double min_x, double max_x, double min_y, double max_y,
-                                                    double min_dx, double max_dx, double min_dy, double max_dy);
+std::vector<vector_4t> generateUniformPoints(int n, scalar_t min_x, scalar_t max_x, scalar_t min_y, scalar_t max_y,
+                                                    scalar_t min_dx, scalar_t max_dx, scalar_t min_dy, scalar_t max_dy);
+
+std::vector<vector_4t> generateGridPoints(int n, scalar_t min_x, scalar_t max_x, scalar_t min_y, scalar_t max_y,
+                                             scalar_t min_dx, scalar_t max_dx, scalar_t min_dy, scalar_t max_dy);
 

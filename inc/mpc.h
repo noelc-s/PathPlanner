@@ -17,7 +17,7 @@ public:
     MPC_Params mpc_params_;
 
     SparseMatrix<double> constraints;
-    vector_t lb, ub;
+    Eigen::VectorXd lb, ub;
     bool isInitialized = false;
 
     MPC(const int nx, const int nu, const MPC_Params loaded_p, const matrix_t &Bez);
@@ -42,9 +42,9 @@ private:
     SparseMatrix<double> SparseIdentity;
     SparseMatrix<double> dynamics_A;
     matrix_t constraint_A;
-    vector_t dynamics_b_lb, dynamics_b_ub, constraint_b;
+    Eigen::VectorXd dynamics_b_lb, dynamics_b_ub, constraint_b;
     SparseMatrix<double> H;
-    vector_t f, full_ref;
+    Eigen::VectorXd f, full_ref;
 
     OsqpSolver solver;
     OsqpInstance instance;

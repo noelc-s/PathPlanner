@@ -8,8 +8,8 @@
 #include "osqp++.h"
 #include <fstream>
 
-const double distance_tol = 0.5;
-const double viol_tol = 0.05;
+const scalar_t distance_tol = 0.5;
+const scalar_t viol_tol = 0.05;
 
 using namespace osqp;
 using namespace boost;
@@ -23,7 +23,7 @@ public:
     GraphQP();
 
     SparseMatrix<double> constraint_matrix;
-    vector_t lb, ub;
+    Eigen::VectorXd lb, ub;
 
     void setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges, const Obstacle obstacle);
     int initializeQP(OsqpSolver &solver, OsqpInstance instance, OsqpSettings settings);
@@ -35,7 +35,7 @@ public:
     void updateConstraints(OsqpSolver &solver, Obstacle obstacle, const std::vector<matrix_t> edges, const int_vector_t &member);
 };
 
-const double kInfinity = std::numeric_limits<double>::infinity();
+const scalar_t kInfinity = std::numeric_limits<scalar_t>::infinity();
 
 template <class PredecessorMap>
 class record_predecessorsC : public dijkstra_visitor<>
@@ -60,7 +60,7 @@ make_predecessor_recorder(PredecessorMap p) {
 }
 
 bool adjacent(vector_4t p1, vector_4t p2);
-double get_weight(vector_4t p1, vector_4t p2);
+scalar_t get_weight(vector_4t p1, vector_4t p2);
 
 std::ofstream open_log_file(std::string filename);
 Graph buildGraph(std::vector<vector_4t> points);
@@ -69,7 +69,7 @@ void cutGraphEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std:
 void cutGraphEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std::pair<int,int>> vertexInds, 
                 const int num_obstacle_faces, VectorXd optimal_solution, int_vector_t membership);                
 void solveGraph(std::vector<vector_4t> points, vector_4t starting_loc, vector_4t ending_loc,
-    int &starting_ind, int& ending_ind, Graph g, std::vector<double> d, std::vector<Vertex>& p);
+    int &starting_ind, int& ending_ind, Graph g, std::vector<scalar_t> d, std::vector<Vertex>& p);
 std::vector<matrix_t> getBezEdges(const Graph graph, std::vector<std::pair<int,int>> &vertexInds);
 
 // does there exist and edge from p1 to p2.
@@ -78,9 +78,9 @@ bool adjacent(vector_4t p1, vector_4t p2, const matrix_t &Fx, const matrix_t & G
 template<typename Func>
 Graph buildGraph(std::vector<vector_4t> points, Func&& F_G, const matrix_t& D_nT, const matrix_t& Bez)
 {
-    EdgeProperties ep;
-    matrix_t controlPoints(4,4);
-    vector_t x1_x2(2*points[0].size());
+    
+    
+    
     const int num_pts = points.size();
     Graph g(num_pts);
     #pragma omp parallel for
@@ -93,7 +93,7 @@ Graph buildGraph(std::vector<vector_4t> points, Func&& F_G, const matrix_t& D_nT
         matrix_t f_xbar_x(1,1);
         matrix_t f_xbar_y(1,1);
         f_xbar_x.setZero();
-        f_xbar_y.setZero(); // double integrator has no nonlinearities.
+        f_xbar_y.setZero(); // scalar_t integrator has no nonlinearities.
         matrix_t g_xbar_x(1,1);
         matrix_t g_xbar_y(1,1);
         g_xbar_x << 1;
@@ -107,10 +107,13 @@ Graph buildGraph(std::vector<vector_4t> points, Func&& F_G, const matrix_t& D_nT
         {
             if (i != j && adjacent(points[i], points[j], Fx, Gx, Fy, Gy, D_nT))
             {
+                EdgeProperties ep;
                 ep.weight = get_weight(points[i], points[j]);
+                vector_t x1_x2(2*points[0].size());
                 x1_x2 << points[i], points[j];
                 matrix_t mul = Bez*x1_x2;
-                controlPoints << Eigen::Map<Eigen::MatrixXd>(mul.data(),4,4);
+                matrix_t controlPoints(4,4);
+                controlPoints << Eigen::Map<matrix_t>(mul.data(),4,4);
                 ep.controlPoints = controlPoints;
                 ep.source_vertex_ind = i;
                 ep.target_vertex_ind = j;

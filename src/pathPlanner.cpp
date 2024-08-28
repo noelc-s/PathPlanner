@@ -7,7 +7,7 @@ PathPlanner::PathPlanner(int state_size, int input_size, const MPC_Params mpc_pa
 
     int order = 3;
     B_p.gamma = 2;
-    double tau = mpc_params.dt;
+    scalar_t tau = mpc_params.dt;
     B = std::make_unique<Bezier>(order, B_p.gamma, tau);
     matrix_t H_vec = B->H_vec(B->H, input_size, order, B_p.gamma, B_p.gamma - 1);
     matrix_t D_nT_vec = B->inv_DT_vec(input_size, order, B_p.gamma);
@@ -66,6 +66,13 @@ void PathPlanner::initialize(const ObstacleCollector O)
         params_.x_bounds[2], params_.x_bounds[3],
         params_.dx_bounds[0], params_.dx_bounds[1],
         params_.dx_bounds[2], params_.dx_bounds[3]);
+    
+    // points = generateGridPoints(
+    //     params_.num_points,
+    //     params_.x_bounds[0], params_.x_bounds[1],
+    //     params_.x_bounds[2], params_.x_bounds[3],
+    //     params_.dx_bounds[0], params_.dx_bounds[1],
+    //     params_.dx_bounds[2], params_.dx_bounds[3]);
 
     auto F_G_bound = std::bind(&PathPlanner::F_G, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
 
@@ -77,8 +84,8 @@ void PathPlanner::initialize(const ObstacleCollector O)
     graphQP.initializeQP(graphSolver, graphInstance, graphSettings);
 }
 
-std::vector<vector_4t> generateUniformPoints(int n, double min_x, double max_x, double min_y, double max_y,
-                                             double min_dx, double max_dx, double min_dy, double max_dy)
+std::vector<vector_4t> generateUniformPoints(int n, scalar_t min_x, scalar_t max_x, scalar_t min_y, scalar_t max_y,
+                                             scalar_t min_dx, scalar_t max_dx, scalar_t min_dy, scalar_t max_dy)
 {
     std::vector<vector_4t> points;
     points.reserve(n);
@@ -100,6 +107,29 @@ std::vector<vector_4t> generateUniformPoints(int n, double min_x, double max_x, 
     return points;
 }
 
+std::vector<vector_4t> generateGridPoints(int n, scalar_t min_x, scalar_t max_x, scalar_t min_y, scalar_t max_y,
+                                             scalar_t min_dx, scalar_t max_dx, scalar_t min_dy, scalar_t max_dy)
+{
+    std::vector<vector_4t> points;
+    points.reserve(n);
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis_x(min_x, max_x);
+    std::uniform_real_distribution<> dis_y(min_y, max_y);
+    std::uniform_real_distribution<> dis_dx(min_dx, max_dx);
+    std::uniform_real_distribution<> dis_dy(min_dy, max_dy);
+
+    for (int i = 0; i < n; ++i)
+    {
+        vector_4t point;
+        point << i%10 * (max_x - min_x) / 10 + min_x, i/10 * (max_y - min_y) / 10 + min_y, 0, 0;
+        points.push_back(point);
+    }
+
+    return points;
+}
+
 void PathPlanner::cutGraph(ObstacleCollector O)
 {
     cut_graph.clear();
@@ -114,25 +144,32 @@ void PathPlanner::cutGraph(ObstacleCollector O)
         Kernel::GraphQP_ObstacleMembershipHeuristic(obstacle, edges, membership);
         timer.time("    Heuristic check: ");
         //////////////////////////////////////////////
-        std::vector<matrix_t> uncertain_edges;
-        for (size_t i = 0; i < membership.size(); ++i) {
-            if (membership[i] == 2) {
-                uncertain_edges.push_back(edges[i]);
+        VectorXd optimal_solution;
+        if ((membership.array() == 2).any()) {
+            std::vector<matrix_t> uncertain_edges;
+            for (size_t i = 0; i < membership.size(); ++i) {
+                if (membership[i] == 2) {
+                    uncertain_edges.push_back(edges[i]);
+                }
             }
+            timer.time("    Copy Edges: ");
+            graphQP.setupQP(graphInstance, uncertain_edges, obstacle);
+            graphQP.initializeQP(graphSolver, graphInstance, graphSettings);
+
+            // graphQP.updateConstraints(graphSolver, obstacle, edges, membership);
+            // graphQP.updateConstraints(graphSolver, obstacle, edges);
+            //////////////////////////////////////////////
+            timer.time("    Update constraints: ");
+            graphQP.solveQP(graphSolver);
+            timer.time("    Solve: ");
+
+            optimal_solution = graphSolver.primal_solution();
+            percentageEdgesRemovedWithHeuristic = 1. - (float)uncertain_edges.size() / edges.size();
+        } else {
+            optimal_solution.resize(0);
+            percentageEdgesRemovedWithHeuristic = 1;
         }
-        timer.time("    Copy Edges: ");
-        graphQP.setupQP(graphInstance, uncertain_edges, obstacle);
-        graphQP.initializeQP(graphSolver, graphInstance, graphSettings);
-
-        // graphQP.updateConstraints(graphSolver, obstacle, edges, membership);
-        // graphQP.updateConstraints(graphSolver, obstacle, edges);
-        //////////////////////////////////////////////
-        timer.time("    Update constraints: ");
-        graphQP.solveQP(graphSolver);
-        timer.time("    Solve: ");
-
-        double optimal_objective = graphSolver.objective_value();
-        VectorXd optimal_solution = graphSolver.primal_solution();
+        
 
         timer.start();
         //////////////////////////////////////////////
@@ -141,7 +178,6 @@ void PathPlanner::cutGraph(ObstacleCollector O)
         //////////////////////////////////////////////
         timer.time("    Cut graph edges: ");
          
-        percentageEdgesRemovedWithHeuristic = 1. - (float)uncertain_edges.size() / edges.size();
         // std::cout << "Percentage of nodes removed with heuristic: " <<  << std::endl;
     }
 }
@@ -157,7 +193,7 @@ void PathPlanner::cutGraph(ObstacleCollector O, std::ofstream &output_file)
 
 void PathPlanner::findPath(vector_t starting_location, vector_t ending_location, std::vector<int> &optimalInd, std::vector<vector_t> &optimalPath)
 {
-    std::vector<double> d(num_vertices(cut_graph), std::numeric_limits<double>::max());
+    std::vector<scalar_t> d(num_vertices(cut_graph), std::numeric_limits<scalar_t>::max());
     std::vector<Vertex> p(num_vertices(cut_graph), graph_traits<Graph>::null_vertex()); // the predecessor array
     int starting_ind = -1;
     int ending_ind = -1;

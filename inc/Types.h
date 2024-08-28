@@ -5,15 +5,17 @@
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/copy.hpp>
 
-using vector_2t = Eigen::Matrix<double, 2, 1>;
-using vector_4t = Eigen::Matrix<double, 4, 1>;
-using matrix_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
-using vector_t = Eigen::Matrix<double, Eigen::Dynamic, 1>;
+using scalar_t = double;
+
+using vector_2t = Eigen::Matrix<scalar_t, 2, 1>;
+using vector_4t = Eigen::Matrix<scalar_t, 4, 1>;
+using matrix_t = Eigen::Matrix<scalar_t, Eigen::Dynamic, Eigen::Dynamic>;
+using vector_t = Eigen::Matrix<scalar_t, Eigen::Dynamic, 1>;
 using int_vector_t = Eigen::Matrix<int, Eigen::Dynamic, 1>;
 
 // Define a property that includes a matrix_t
 struct EdgeProperties {
-    double weight;   // standard weight
+    scalar_t weight;   // standard weight
     matrix_t controlPoints; // custom matrix property
     int source_vertex_ind;
     int target_vertex_ind;

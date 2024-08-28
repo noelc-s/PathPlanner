@@ -24,7 +24,7 @@ bool adjacent(vector_4t p1, vector_4t p2, const matrix_t &Fx, const matrix_t & G
     return connected;
 }
 
-double get_weight(vector_4t p1, vector_4t p2)
+scalar_t get_weight(vector_4t p1, vector_4t p2)
 {
     return (p1 - p2).norm();
 }
@@ -177,7 +177,7 @@ void GraphQP::ObstacleMembershipHeuristic(Obstacle obstacle, const std::vector<m
     // #pragma omp parallel for
     for (int i = 0; i < edges.size(); i++) {
         vector_t A_hyp_(2), A_hyp(2);
-        double b_hyp_, b_hyp;
+        scalar_t b_hyp_, b_hyp;
         matrix_t coll = (obstacle.A * edges[i]).colwise() - obstacle.b;
         if (((coll.array() <= 0).colwise().all()).any()) {
             member[i] = 1;
@@ -352,19 +352,19 @@ void cutGraphEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std:
 }
 
 void solveGraph(std::vector<vector_4t> points, vector_4t starting_loc, vector_4t ending_loc,
-                int &starting_ind, int& ending_ind, Graph g, std::vector<double> d, std::vector<Vertex>& p)
+                int &starting_ind, int& ending_ind, Graph g, std::vector<scalar_t> d, std::vector<Vertex>& p)
 {
-    double closest_starting_dist = 1e5;
-    double closest_ending_dist = 1e5;
+    scalar_t closest_starting_dist = 1e5;
+    scalar_t closest_ending_dist = 1e5;
     const int num_pts = points.size();
     for (int i = 0; i < num_pts; i++) {
-        double s_dist = (points[i] - starting_loc).norm();
+        scalar_t s_dist = (points[i] - starting_loc).norm();
         int num_edges = out_degree(i, g);
         if (num_edges > 0 && s_dist < closest_starting_dist) {
             closest_starting_dist = s_dist;
             starting_ind = i;
         }
-        double e_dist = (points[i] - ending_loc).norm();
+        scalar_t e_dist = (points[i] - ending_loc).norm();
         if (e_dist < closest_ending_dist) {
             closest_ending_dist = e_dist;
             ending_ind = i;

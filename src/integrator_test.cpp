@@ -9,11 +9,11 @@
 
 using namespace boost::numeric::odeint;
 
-double sigma = 1;
-double R = 1;
-double b = 1;
+scalar_t sigma = 1;
+scalar_t R = 1;
+scalar_t b = 1;
 
-void lorenz_eigen( const vector_t &x , vector_t &dxdt , double t )
+void lorenz_eigen( const vector_t &x , vector_t &dxdt , scalar_t t )
 {
     dxdt.resize(x.size());
     dxdt.setZero();
@@ -29,7 +29,7 @@ int main() {
  vector_t x0_eigen(3000);
  x0_eigen.setIdentity();
  auto start = std::chrono::high_resolution_clock::now();
- typedef runge_kutta4<vector_t, double, vector_t, double, vector_space_algebra> stepper_lorenz;
+ typedef runge_kutta4<vector_t, scalar_t, vector_t, scalar_t, vector_space_algebra> stepper_lorenz;
  stepper_lorenz* step = new stepper_lorenz();
  for (int i = 0; i < 100; i++) {
    //integrate_const( stepper(), lorenz_eigen , x0_eigen , 0.0 , 0.1 , 0.1);

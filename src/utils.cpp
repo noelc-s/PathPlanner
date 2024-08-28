@@ -6,17 +6,17 @@ void Timer::start() {
     start_time = std::chrono::high_resolution_clock::now();
 }
 
-double Timer::time() {
+scalar_t Timer::time() {
     end_time = std::chrono::high_resolution_clock::now();
     duration = end_time - start_time;
-    double dur_ms =  duration.count()*1e-6;
+    scalar_t dur_ms =  duration.count()*1e-6;
     if (print_)
         std::cout << dur_ms << " ms" << std::endl;
     start_time = end_time;
     return dur_ms;
 }
 
-double Timer::time(std::string info) {
+scalar_t Timer::time(std::string info) {
     if (print_)
         std::cout << info;
     return time();
@@ -27,27 +27,27 @@ void loadPlannerParams(std::string filename, Params &p, MPC_Params &mpc_p, Plann
     p.num_traj = config["num_traj"].as<int>();   
 
     mpc_p.N = config["MPC"]["N"].as<int>();
-    mpc_p.dt = config["MPC"]["dt"].as<double>();
+    mpc_p.dt = config["MPC"]["dt"].as<scalar_t>();
     mpc_p.SQP_iters = config["MPC"]["SQP_iters"].as<int>();
-    mpc_p.terminalScaling = config["MPC"]["terminalScaling"].as<double>();
-    mpc_p.tau_max = config["MPC"]["tau_max"].as<double>();
+    mpc_p.terminalScaling = config["MPC"]["terminalScaling"].as<scalar_t>();
+    mpc_p.tau_max = config["MPC"]["tau_max"].as<scalar_t>();
     mpc_p.use_previous_reference = config["MPC"]["use_previous_reference"].as<bool>();
     mpc_p.stateScaling.resize(4);
     mpc_p.inputScaling.resize(2);
-    auto tmp = config["MPC"]["stateScaling"].as<std::vector<double>>();
+    auto tmp = config["MPC"]["stateScaling"].as<std::vector<scalar_t>>();
     for (int i = 0; i < mpc_p.stateScaling.size(); i++)
         mpc_p.stateScaling(i) = tmp[i];
-    tmp = config["MPC"]["inputScaling"].as<std::vector<double>>();
+    tmp = config["MPC"]["inputScaling"].as<std::vector<scalar_t>>();
     for (int i = 0; i < mpc_p.inputScaling.size(); i++)
         mpc_p.inputScaling(i) = tmp[i];
-    mpc_p.buffer = config["MPC"]["buffer"].as<double>();
+    mpc_p.buffer = config["MPC"]["buffer"].as<scalar_t>();
 
     p_p.x_bounds.resize(4);
     p_p.dx_bounds.resize(4);
-    tmp = config["Planner"]["x_bounds"].as<std::vector<double>>();
+    tmp = config["Planner"]["x_bounds"].as<std::vector<scalar_t>>();
     for (int i = 0; i < p_p.x_bounds.size(); i++)
         p_p.x_bounds(i) = tmp[i];
-    tmp = config["Planner"]["dx_bounds"].as<std::vector<double>>();
+    tmp = config["Planner"]["dx_bounds"].as<std::vector<scalar_t>>();
     for (int i = 0; i < p_p.dx_bounds.size(); i++)
         p_p.dx_bounds(i) = tmp[i];
     p_p.num_points = config["Planner"]["num_points"].as<int>();
