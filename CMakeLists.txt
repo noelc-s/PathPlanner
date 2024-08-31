@@ -53,7 +53,7 @@ add_definitions(-DUSE_CUDA)
 
 
 find_package(CUDA REQUIRED)
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_30")
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_89")
 
 set(CUDA_SOURCES
     src/kernel.cu

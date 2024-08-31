@@ -154,7 +154,7 @@ namespace Kernel
         cudaMemcpy(d_edges, edges_flat, edges_size, cudaMemcpyHostToDevice);
 
         // Launch the kernel
-        int blockSize = 512;
+        int blockSize = 256;
         int gridSize = (num_edges + blockSize - 1) / blockSize;
 
         // cudaEventRecord(start);

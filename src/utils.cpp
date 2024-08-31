@@ -40,7 +40,7 @@ void loadPlannerParams(std::string filename, Params &p, MPC_Params &mpc_p, Plann
     tmp = config["MPC"]["inputScaling"].as<std::vector<scalar_t>>();
     for (int i = 0; i < mpc_p.inputScaling.size(); i++)
         mpc_p.inputScaling(i) = tmp[i];
-    mpc_p.buffer = config["MPC"]["buffer"].as<scalar_t>();
+    mpc_p.buffer = config["Planner"]["buffer"].as<scalar_t>();
 
     p_p.x_bounds.resize(4);
     p_p.dx_bounds.resize(4);
@@ -52,6 +52,8 @@ void loadPlannerParams(std::string filename, Params &p, MPC_Params &mpc_p, Plann
         p_p.dx_bounds(i) = tmp[i];
     p_p.num_points = config["Planner"]["num_points"].as<int>();
     p_p.log_edges = config["Planner"]["log_edges"].as<bool>();
+    p_p.use_planner = config["use_planner"].as<bool>();
+    p_p.buffer = config["Planner"]["buffer"].as<scalar_t>();
 
 }
 

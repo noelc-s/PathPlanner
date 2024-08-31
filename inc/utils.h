@@ -29,6 +29,8 @@ struct Planner_Params
     vector_t x_bounds;
     vector_t dx_bounds;
     bool log_edges;
+    bool use_planner;
+    scalar_t buffer;
 };
 
 struct Params

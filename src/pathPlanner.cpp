@@ -135,10 +135,11 @@ void PathPlanner::cutGraph(ObstacleCollector O)
     cut_graph.clear();
     boost::copy_graph(graph, cut_graph);
     Timer timer(PRINT_TIMING);
-    int_vector_t membership(edges.size());
 
     for (auto obstacle : O.obstacles)
     {
+        int_vector_t membership(edges.size());
+        obstacle.b += params_.buffer*vector_t::Ones(obstacle.b.size());
         timer.start();
         // graphQP.ObstacleMembershipHeuristic(obstacle, edges, membership);
         Kernel::GraphQP_ObstacleMembershipHeuristic(obstacle, edges, membership);
