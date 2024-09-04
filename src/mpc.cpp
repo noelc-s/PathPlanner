@@ -28,7 +28,7 @@ MPC::MPC(const int nx, const int nu, const MPC_Params loaded_p, const matrix_t &
             mpc_params_.dt, 0,
             0, mpc_params_.dt;
 
-    settings.verbose = false;
+    settings.verbose = PRINT_TIMING;
     settings.polish = false;
     settings.max_iter = 20;
 }
@@ -220,6 +220,8 @@ void MPC::updateConstraintsSQP(ObstacleCollector O, vector_t sol, const vector_t
         }
         matrix_t A(1,4);
         vector_t b(1);
+        A.setZero();
+        b << 1;
         double max_viol = 1e3;
         for (auto obstacle : O.obstacles) {
             vector_t x(2);
