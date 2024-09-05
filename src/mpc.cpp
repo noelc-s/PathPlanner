@@ -6,10 +6,10 @@ MPC::MPC(const int nx, const int nu, const MPC_Params loaded_p, const matrix_t &
      : nx_(nx), nu_(nu), mpc_params_(loaded_p), Bez_(Bez) {
     nvar_ = nx_*mpc_params_.N+nu_*(mpc_params_.N-1);
 
-    dynamics_A.resize(nx_*mpc_params_.N + nu_*(mpc_params_.N-1),(nx_*mpc_params_.N+nu_*(mpc_params_.N-1)));
-    SparseIdentity.resize(nx_*mpc_params_.N + nu_*(mpc_params_.N-1),(nx_*mpc_params_.N+nu_*(mpc_params_.N-1)));
-    dynamics_b_lb.resize(nx_*mpc_params_.N + nu_*(mpc_params_.N-1)); // dynamics and torque bounds
-    dynamics_b_ub.resize(nx_*mpc_params_.N + nu_*(mpc_params_.N-1)); // dynamics and torque bounds
+    dynamics_A.resize(nx_*mpc_params_.N + nu_*(mpc_params_.N-1) + 2*mpc_params_.N,(nx_*mpc_params_.N+nu_*(mpc_params_.N-1)));
+    SparseIdentity.resize(nx_*mpc_params_.N + nu_*(mpc_params_.N-1) + 2*mpc_params_.N,(nx_*mpc_params_.N+nu_*(mpc_params_.N-1)));
+    dynamics_b_lb.resize(nx_*mpc_params_.N + nu_*(mpc_params_.N-1) + 2*mpc_params_.N); // dynamics and torque bounds and vel_bound
+    dynamics_b_ub.resize(nx_*mpc_params_.N + nu_*(mpc_params_.N-1) + 2*mpc_params_.N); // dynamics and torque bounds and vel_bound
     dynamics_b_lb.setZero();
     dynamics_b_ub.setZero();
 
@@ -59,11 +59,24 @@ void MPC::buildDynamicEquality() {
         dynamics_A.insert(nx_*mpc_params_.N+i*nu_+j,nx_*mpc_params_.N+i*nu_+j) = 1;
       }
     }
+    // vel_bounds
+    for (int i = 0; i < mpc_params_.N; i++) {
+      for (int j = 0; j < 2; j++) {
+        dynamics_A.insert(nx_*mpc_params_.N+nu_*(mpc_params_.N-1)+i*2+j,i*4+j+2) = 1;
+      }
+    }
     // set torque limits
     for (int i = 0; i < mpc_params_.N-1; i++) {
       for (int j = 0; j < nu_; j++) {
         dynamics_b_lb(nx_*mpc_params_.N+i*nu_+j) = -mpc_params_.tau_max;
         dynamics_b_ub(nx_*mpc_params_.N+i*nu_+j) = mpc_params_.tau_max;
+      }
+    }
+    // set vel limits
+    for (int i = 0; i < mpc_params_.N-1; i++) {
+      for (int j = 0; j < 2; j++) {
+        dynamics_b_lb(nx_*mpc_params_.N+nu_*(mpc_params_.N-1)+i*2+j) = -mpc_params_.vel_max;
+        dynamics_b_ub(nx_*mpc_params_.N+nu_*(mpc_params_.N-1)+i*2+j) = mpc_params_.vel_max;
       }
     }
 }

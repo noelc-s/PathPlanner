@@ -57,7 +57,7 @@ public:
 
     void cutGraph(ObstacleCollector O);
     void cutGraph(ObstacleCollector O, std::ofstream &output_file);
-    void findPath(vector_t starting_location, vector_t ending_location, std::vector<int> &optimalInd, std::vector<vector_t> &optimalPath);
+    void findPath(const std::vector<Obstacle> obstacles, vector_t starting_location, vector_t &ending_location, std::vector<int> &optimalInd, std::vector<vector_t> &optimalPath);
     void refineWithMPC(vector_t &sol, ObstacleCollector O, std::vector<int> optimalInd, std::vector<vector_t> optimalPath, vector_t starting_loc, vector_t ending_loc);
 };
 

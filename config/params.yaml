@@ -10,6 +10,7 @@ MPC:
   inputScaling: [10, 10]
   terminalScaling: 10
   tau_max: 5
+  vel_max: 0.2
   use_previous_reference: true
 
 Planner:

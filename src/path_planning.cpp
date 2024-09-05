@@ -26,8 +26,10 @@ int main()
     const int state_size = 4;
     const int input_size = 2;
 
-    vector_4t starting_loc;
-    vector_4t ending_loc;
+    vector_t starting_loc;
+    vector_t ending_loc;
+    starting_loc.resize(4);
+    ending_loc.resize(4);
     starting_loc << 0,0 , 0, 0;
     ending_loc << 1,0, 0, 0;
 
@@ -58,7 +60,7 @@ int main()
         std::vector<int> optimalInd;
         std::vector<vector_t> optimalPath;
         timer.start();
-        planner.findPath(starting_loc, ending_loc, optimalInd, optimalPath);
+        planner.findPath(O.obstacles, starting_loc, ending_loc, optimalInd, optimalPath);
         timer.time("Find Path: ");
         log(optimalInd, output_file, "Path{" + (std::to_string)(i + 1) + "}");
 

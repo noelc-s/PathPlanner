@@ -192,7 +192,7 @@ void PathPlanner::cutGraph(ObstacleCollector O, std::ofstream &output_file)
     }
 }
 
-void PathPlanner::findPath(vector_t starting_location, vector_t ending_location, std::vector<int> &optimalInd, std::vector<vector_t> &optimalPath)
+void PathPlanner::findPath(const std::vector<Obstacle> obstacles, vector_t starting_location, vector_t &ending_location, std::vector<int> &optimalInd, std::vector<vector_t> &optimalPath)
 {
     std::vector<scalar_t> d(num_vertices(cut_graph), std::numeric_limits<scalar_t>::max());
     std::vector<Vertex> p(num_vertices(cut_graph), graph_traits<Graph>::null_vertex()); // the predecessor array
@@ -200,6 +200,17 @@ void PathPlanner::findPath(vector_t starting_location, vector_t ending_location,
     int ending_ind = -1;
 
     solveGraph(points, starting_location, ending_location, starting_ind, ending_ind, cut_graph, d, p);
+
+    bool ending_loc_in_obstacle = false;
+    for (auto obstacle : obstacles) {
+        obstacle.b += params_.buffer*vector_t::Ones(obstacle.b.size());
+        matrix_t coll = obstacle.A * ending_location - obstacle.b;
+        if ((coll.array() <= 0).all())
+            ending_loc_in_obstacle = true;
+    }
+    if (ending_loc_in_obstacle) {
+        ending_location = points[ending_ind];
+    }
 
     for (Vertex v = vertex(ending_ind, cut_graph); v != vertex(starting_ind, cut_graph); v = p[v])
     {

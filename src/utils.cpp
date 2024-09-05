@@ -31,6 +31,7 @@ void loadPlannerParams(std::string filename, Params &p, MPC_Params &mpc_p, Plann
     mpc_p.SQP_iters = config["MPC"]["SQP_iters"].as<int>();
     mpc_p.terminalScaling = config["MPC"]["terminalScaling"].as<scalar_t>();
     mpc_p.tau_max = config["MPC"]["tau_max"].as<scalar_t>();
+    mpc_p.vel_max = config["MPC"]["vel_max"].as<scalar_t>();
     mpc_p.use_previous_reference = config["MPC"]["use_previous_reference"].as<bool>();
     mpc_p.stateScaling.resize(4);
     mpc_p.inputScaling.resize(2);

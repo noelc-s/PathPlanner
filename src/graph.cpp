@@ -365,7 +365,7 @@ void solveGraph(std::vector<vector_4t> points, vector_4t starting_loc, vector_4t
             starting_ind = i;
         }
         scalar_t e_dist = (points[i] - ending_loc).norm();
-        if (e_dist < closest_ending_dist) {
+        if (num_edges > 0 && e_dist < closest_ending_dist) {
             closest_ending_dist = e_dist;
             ending_ind = i;
         }

@@ -47,6 +47,7 @@ struct MPC_Params
     vector_t inputScaling;
     scalar_t terminalScaling;
     scalar_t tau_max;
+    scalar_t vel_max;
     bool use_previous_reference;
     scalar_t buffer;
 };
