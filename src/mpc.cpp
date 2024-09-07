@@ -138,31 +138,22 @@ void MPC::buildCost()
     f.setZero();
 }
 
-vector_t MPC::buildFromOptimalGraphSolve(const ObstacleCollector O, const std::vector<int> optimalInd,
-                    const std::vector<vector_t> optimalPath,
+vector_t MPC::buildFromOptimalGraphSolve(const std::vector<vector_t> optimalPath,
                     const vector_t& xg)
 {
-    std::vector<matrix_t> A_constraint;
-    std::vector<vector_t> b_constraint;
-
     vector_t sol(mpc_params_.N * nx_);
-    for (int i = 0; i < std::min((size_t)mpc_params_.N,optimalInd.size()); i++) {
+    for (int i = 0; i < std::min((size_t)mpc_params_.N,optimalPath.size()); i++) {
         // Have to traverse the list backwards
-        const int vertex_ind = optimalInd[optimalInd.size()-1-i];
-        vector_t x = optimalPath[optimalInd.size()-1-i];
+        vector_t x = optimalPath[optimalPath.size()-1-i];
         sol.segment(i*nx_,nx_) << x;
     }
-    if (optimalInd.size() < mpc_params_.N) {
-        for (int i = optimalInd.size(); i < mpc_params_.N; i++) 
+    if (optimalPath.size() < mpc_params_.N) {
+        for (int i = optimalPath.size(); i < mpc_params_.N; i++) 
         {    
             sol.segment(i*nx_,nx_) << xg;
         }
     }
 
-    updateConstraintsSQP(O, sol, xg);
-    if (!isInitialized) {
-        initialize();
-    }
     return sol;
 }
 

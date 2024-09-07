@@ -7,7 +7,7 @@ PathPlanner::PathPlanner(int state_size, int input_size, const MPC_Params mpc_pa
 
     int order = 3;
     B_p.gamma = 2;
-    scalar_t tau = mpc_params.dt;
+    scalar_t tau = p_p.bez_dt;
     B = std::make_unique<Bezier>(order, B_p.gamma, tau);
     matrix_t H_vec = B->H_vec(B->H, input_size, order, B_p.gamma, B_p.gamma - 1);
     matrix_t D_nT_vec = B->inv_DT_vec(input_size, order, B_p.gamma);
@@ -217,6 +217,8 @@ void PathPlanner::findPath(const std::vector<Obstacle> obstacles, vector_t start
         if (v < 0 || v > points.size())
         {
             optimalPathFound = 0;
+            optimalInd.push_back(-1);
+            optimalPath.clear();
             return;
         }
         optimalInd.push_back(v);
@@ -230,7 +232,53 @@ void PathPlanner::findPath(const std::vector<Obstacle> obstacles, vector_t start
 void PathPlanner::refineWithMPC(vector_t &sol, ObstacleCollector O, std::vector<int> optimalInd, std::vector<vector_t> optimalPath, vector_t starting_loc, vector_t ending_loc) {
         Timer timer(PRINT_TIMING);
         timer.start();
-        sol = mpc_->buildFromOptimalGraphSolve(O, optimalInd, optimalPath, ending_loc);
+
+        scalar_t mpc_dt = mpc_params_.dt;
+        scalar_t bez_dt = params_.bez_dt;
+
+        vector_t graph_sol(mpc_params_.N * nx_);
+        for (int i = 0; i < std::min((size_t)mpc_params_.N,optimalPath.size()); i++) {
+            // Have to traverse the list backwards
+            graph_sol.segment(i*nx_,nx_) << optimalPath[optimalPath.size()-1-i];
+        }
+        if (optimalPath.size() < mpc_params_.N) {
+            for (int i = optimalPath.size(); i < mpc_params_.N; i++) 
+            {    
+                if (optimalPathFound) {
+                    graph_sol.segment(i*mpc_->nx_,mpc_->nx_) << ending_loc;
+                } else {
+                    graph_sol.segment(i*mpc_->nx_,mpc_->nx_) << starting_loc;
+                }
+            }
+        }
+
+        int index = 0;
+
+        vector_t x0 = graph_sol.segment(index*mpc_->nx_,mpc_->nx_);
+        vector_t x1 = graph_sol.segment((index+1)*mpc_->nx_,mpc_->nx_);
+
+        matrix_t control_points = Vertex(optimalInd[index], g).controlPoints;
+
+        scalar_t t = 0;
+        scalar_t bez_t = 0;
+
+        for (int i = 0; i < mpc_params_.N; i++) {
+            t = i*mpc_dt;
+            if (t > (index+1) * bez_dt) {
+                index++;
+            }
+            bez_t = t - index * bez_dt;
+            sol.segment(i*mpc_->nx_,mpc_->nx_) << Bezier.b(bez_t, ctrl_pts);
+        }
+        
+
+        
+        
+        mpc_->updateConstraintsSQP(O, sol, xg);
+        if (!mpc_->isInitialized) {
+           mpc_->initialize();
+        }
+
         timer.time("    Build Graph from Optimal Solve: ");
         mpc_->updateConstraints(starting_loc);
         timer.time("    Update Constraints: ");

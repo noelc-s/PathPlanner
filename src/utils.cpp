@@ -55,6 +55,7 @@ void loadPlannerParams(std::string filename, Params &p, MPC_Params &mpc_p, Plann
     p_p.log_edges = config["Planner"]["log_edges"].as<bool>();
     p_p.use_planner = config["use_planner"].as<bool>();
     p_p.buffer = config["Planner"]["buffer"].as<scalar_t>();
+    p_p.bez_dt = config["Planner"]["bez_dt"].as<scalar_t>();
 
 }
 
