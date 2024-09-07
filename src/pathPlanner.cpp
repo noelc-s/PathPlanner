@@ -7,7 +7,7 @@ PathPlanner::PathPlanner(int state_size, int input_size, const MPC_Params mpc_pa
 
     int order = 3;
     B_p.gamma = 2;
-    scalar_t tau = mpc_params.dt;
+    scalar_t tau = p_p.bez_dt;
     B = std::make_unique<Bezier>(order, B_p.gamma, tau);
     matrix_t H_vec = B->H_vec(B->H, input_size, order, B_p.gamma, B_p.gamma - 1);
     matrix_t D_nT_vec = B->inv_DT_vec(input_size, order, B_p.gamma);
@@ -141,8 +141,8 @@ void PathPlanner::cutGraph(ObstacleCollector O)
         int_vector_t membership(edges.size());
         obstacle.b += params_.buffer*vector_t::Ones(obstacle.b.size());
         timer.start();
-        // graphQP.ObstacleMembershipHeuristic(obstacle, edges, membership);
-        Kernel::GraphQP_ObstacleMembershipHeuristic(obstacle, edges, membership);
+        graphQP.ObstacleMembershipHeuristic(obstacle, edges, membership);
+        // Kernel::GraphQP_ObstacleMembershipHeuristic(obstacle, edges, membership);
         timer.time("    Heuristic check: ");
         //////////////////////////////////////////////
         VectorXd optimal_solution;
@@ -217,6 +217,8 @@ void PathPlanner::findPath(const std::vector<Obstacle> obstacles, vector_t start
         if (v < 0 || v > points.size())
         {
             optimalPathFound = 0;
+            optimalInd.push_back(-1);
+            optimalPath.clear();
             return;
         }
         optimalInd.push_back(v);
@@ -230,7 +232,66 @@ void PathPlanner::findPath(const std::vector<Obstacle> obstacles, vector_t start
 void PathPlanner::refineWithMPC(vector_t &sol, ObstacleCollector O, std::vector<int> optimalInd, std::vector<vector_t> optimalPath, vector_t starting_loc, vector_t ending_loc) {
         Timer timer(PRINT_TIMING);
         timer.start();
-        sol = mpc_->buildFromOptimalGraphSolve(O, optimalInd, optimalPath, ending_loc);
+
+        scalar_t mpc_dt = mpc_->mpc_params_.dt;
+        scalar_t bez_dt = params_.bez_dt;
+
+        int index = 0;
+
+        vector_t x0, x1;
+        if (index < optimalPath.size()-1) {
+            x0 = optimalPath[optimalPath.size()-1-index];
+            x1 = optimalPath[optimalPath.size()-1-(index+1)];
+        } else {
+            if (optimalPathFound) {
+                x0 = ending_loc;
+                x1 = ending_loc;
+            } else {
+                x0 = starting_loc;
+                x1 = starting_loc;
+            }
+        }
+        vector_t x1_x2(2*mpc_->nx_);
+        x1_x2 << x0, x1;
+        matrix_t mul = Bez_*x1_x2;
+        matrix_t controlPoints(4,4);
+        controlPoints << Eigen::Map<matrix_t>(mul.data(),4,4).transpose();
+
+        scalar_t t = 0;
+        scalar_t bez_t = 0;
+
+        sol.resize(mpc_->nx_ * mpc_->mpc_params_.N);
+
+        for (int i = 0; i < mpc_->mpc_params_.N; i++) {
+            t = i*mpc_dt;
+            if (t > (index+1) * bez_dt) {
+                index++;
+                if (index < optimalPath.size()-1) {
+                    x0 = optimalPath[optimalPath.size()-1-index];
+                    x1 = optimalPath[optimalPath.size()-1-(index+1)];
+                } else {
+                    if (optimalPathFound) {
+                        x0 << ending_loc;
+                        x1 << ending_loc;
+                    } else {
+                        x0 << starting_loc;
+                        x1 << starting_loc;
+                    }
+                }
+                x1_x2 << x0, x1;
+                mul = Bez_*x1_x2;
+                controlPoints << Eigen::Map<matrix_t>(mul.data(),4,4).transpose();
+            }
+            bez_t = t - index * bez_dt;
+            sol.segment(i*mpc_->nx_,mpc_->nx_) << B->b(bez_t, controlPoints).transpose();
+        }
+        vector_t xg = x1;
+    
+        mpc_->updateConstraintsSQP(O, sol, xg);
+        if (!mpc_->isInitialized) {
+           mpc_->initialize();
+        }
+
         timer.time("    Build Graph from Optimal Solve: ");
         mpc_->updateConstraints(starting_loc);
         timer.time("    Update Constraints: ");

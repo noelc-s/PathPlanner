@@ -31,6 +31,7 @@ struct Planner_Params
     bool log_edges;
     bool use_planner;
     scalar_t buffer;
+    scalar_t bez_dt;
 };
 
 struct Params
