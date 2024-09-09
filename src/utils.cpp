@@ -42,6 +42,7 @@ void loadPlannerParams(std::string filename, Params &p, MPC_Params &mpc_p, Plann
     for (int i = 0; i < mpc_p.inputScaling.size(); i++)
         mpc_p.inputScaling(i) = tmp[i];
     mpc_p.buffer = config["Planner"]["buffer"].as<scalar_t>();
+    mpc_p.path_length_cost = config["MPC"]["path_length_cost"].as<scalar_t>();
 
     p_p.x_bounds.resize(4);
     p_p.dx_bounds.resize(4);

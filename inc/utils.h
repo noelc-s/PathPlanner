@@ -51,6 +51,7 @@ struct MPC_Params
     scalar_t vel_max;
     bool use_previous_reference;
     scalar_t buffer;
+    scalar_t path_length_cost;
 };
 
 void loadPlannerParams(std::string filename, Params &p, MPC_Params &mpc_p, Planner_Params &p_p);

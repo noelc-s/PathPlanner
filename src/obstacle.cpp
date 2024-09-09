@@ -38,22 +38,20 @@ ObstacleCollector::ObstacleCollector() {
     obstacles.push_back(obstacle);
     freq.push_back(dist_freq(gen));
 
-    // x_rand = dis_x(gen);
-    // y_rand = dis_y(gen);
-    // // obstacle.center << x_rand, y_rand;
-    // obstacle.center << -0.5, 0;
-    // // obstacle.b << obstacle_size + obstacle.center(0), obstacle_size - obstacle.center(0), obstacle_size + obstacle.center(1), obstacle_size - obstacle.center(1);
-    // obstacle.b << -1,-1,-1,-1;
-    // obstacle.A.setZero();
-    // obstacle.v.setZero();
-    // // obstacle.v << obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1),
-    // //     obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
-    // //     -obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
-    // //     -obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1);
-    // obstacle.center << 0,0; // center should be difference in motion from IC
-    // b_obs.push_back(obstacle.b);
-    // obstacles.push_back(obstacle);
-    // freq.push_back(dist_freq(gen));
+    x_rand = dis_x(gen);
+    y_rand = dis_y(gen);
+    // obstacle.center << x_rand, y_rand;
+    obstacle.center << -0.5, 0;
+    obstacle_size = 0.16;
+    obstacle.b << obstacle_size + obstacle.center(0), obstacle_size - obstacle.center(0), obstacle_size + obstacle.center(1), obstacle_size - obstacle.center(1);
+    obstacle.v << obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1),
+        obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
+        -obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
+        -obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1);
+    obstacle.center << 0,0; // center should be difference in motion from IC
+    b_obs.push_back(obstacle.b);
+    obstacles.push_back(obstacle);
+    freq.push_back(dist_freq(gen));
 
 }
 

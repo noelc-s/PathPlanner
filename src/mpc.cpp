@@ -30,7 +30,7 @@ MPC::MPC(const int nx, const int nu, const MPC_Params loaded_p, const matrix_t &
 
     settings.verbose = PRINT_TIMING;
     settings.polish = false;
-    settings.max_iter = 20;
+    settings.max_iter = 30;
 }
 
 void MPC::buildDynamicEquality() {
@@ -82,10 +82,13 @@ void MPC::buildDynamicEquality() {
 }
 
 void MPC::buildConstraintInequality(const std::vector<matrix_t> A_constraint, const std::vector<vector_t> b_constraint) {
-    const int num_constraints = A_constraint.size();
+    // const int num_constraints = A_constraint.size();
+    // int total_rows = std::accumulate(A_constraint.begin(), A_constraint.end(), 0, 
+                            //  [](int sum, const matrix_t& mat) { return sum + mat.rows(); });
+    // General case ^ not neded here
+    const int num_constraints = mpc_params_.N;
+    int total_rows = mpc_params_.N;
 
-    int total_rows = std::accumulate(A_constraint.begin(), A_constraint.end(), 0, 
-                                 [](int sum, const matrix_t& mat) { return sum + mat.rows(); });
     constraint_A.resize(4*total_rows, nx_*mpc_params_.N); // constrain x_k and x_kp1 except for last point
     constraint_b.resize(4*total_rows);
     constraint_A.setZero();
@@ -119,22 +122,60 @@ void MPC::buildConstraintInequality(const std::vector<matrix_t> A_constraint, co
     }
 }
 
+Eigen::MatrixXd createPathLengthMatrix(int n) {
+    Eigen::MatrixXd mat = Eigen::MatrixXd::Zero(n, n);
+
+    mat(0, 0) = 1;
+    mat(n - 1, n - 1) = 1;
+
+    for (int i = 1; i < n - 1; ++i) {
+        mat(i, i) = 2;
+        mat(i, i - 1) = -1;
+        mat(i, i + 1) = -1;
+    }
+
+    // Handle the first and last row separately
+    mat(0, 1) = -1;
+    mat(n - 1, n - 2) = -1;
+
+    return mat;
+}
+
 void MPC::buildCost()
 {
+    H_cost.resize(mpc_params_.N*nx_ + (mpc_params_.N-1) * nu_, mpc_params_.N*nx_ + (mpc_params_.N-1) * nu_);
+    H_cost.setZero();
     for (int i = 0; i < mpc_params_.N; i++) {
         for (int j = 0; j < nx_; j++) {
-	  if (i == mpc_params_.N-1) {
-            H.insert(i*nx_+j,i*nx_+j) = mpc_params_.terminalScaling*mpc_params_.stateScaling(j);
-	  } else {
-            H.insert(i*nx_+j,i*nx_+j) = mpc_params_.stateScaling(j);
-	  }
+            if (i == mpc_params_.N-1) {
+                    H.insert(i*nx_+j,i*nx_+j) = mpc_params_.terminalScaling*mpc_params_.stateScaling(j);
+                    H_cost(i*nx_+j,i*nx_+j) = mpc_params_.terminalScaling*mpc_params_.stateScaling(j);
+            } else {
+                    H.insert(i*nx_+j,i*nx_+j) = mpc_params_.stateScaling(j);
+                    H_cost(i*nx_+j,i*nx_+j) = mpc_params_.stateScaling(j);
+            }
         }
-	if (i < mpc_params_.N-1) {
-          for (int j = 0; j < nu_; j++) {
-              H.insert(mpc_params_.N*nx_+i*nu_+j,mpc_params_.N*nx_+i*nu_+j) = mpc_params_.inputScaling(j);
-          }
-	}
+        if (i < mpc_params_.N-1) {
+            for (int j = 0; j < nu_; j++) {
+                H.insert(mpc_params_.N*nx_+i*nu_+j,mpc_params_.N*nx_+i*nu_+j) = mpc_params_.inputScaling(j);
+                H_cost(mpc_params_.N*nx_+i*nu_+j,mpc_params_.N*nx_+i*nu_+j) = mpc_params_.inputScaling(j);
+            }
+        }
     }
+
+    matrix_t pathLengthCost = createPathLengthMatrix(mpc_params_.N);
+    for (int i = 0; i < mpc_params_.N; i++) {
+        for (int j = 0; j < nx_; j++) {
+            H.coeffRef(i*nx_+j,i*nx_+j) += pathLengthCost(i,i) * mpc_params_.stateScaling(j) * mpc_params_.path_length_cost;
+            if (i > 0) {
+                H.insert(i*nx_+j,(i-1)*nx_+j) = pathLengthCost(i,(i-1)) * mpc_params_.stateScaling(j) * mpc_params_.path_length_cost;
+            }
+            if (i < mpc_params_.N - 1) {
+                H.insert(i*nx_+j,(i+1)*nx_+j) = pathLengthCost(i,(i+1)) * mpc_params_.stateScaling(j) * mpc_params_.path_length_cost;
+            }
+        }
+    }
+
     f.setZero();
 }
 
@@ -153,12 +194,20 @@ void MPC::initialize()
 
     for (int i = 0; i < dynamics_A.rows(); i++) {
         for (int j = 0; j < nvar_; j++) {
-            constraints.insert(i, j) = dynamics_A.coeff(i, j);
+            if (dynamics_A.coeff(i, j) != 0)
+                constraints.insert(i, j) = dynamics_A.coeff(i, j);
         }
     }
-    for (int i = 0; i < constraint_A.rows(); i++) {
-        for (int j = 0; j < nx_*mpc_params_.N; j++) {
-            constraints.insert(i + dynamics_A.rows(), j) = constraint_A(i, j);
+    for (int i = 0; i < (mpc_params_.N-1); i++) {
+        for (int j = 0; j < nx_; j++) {
+            constraints.insert(4*i   + dynamics_A.rows(), i*nx_ + j)     = constraint_A(4*i  , i*nx_ + j);
+            constraints.insert(4*i   + dynamics_A.rows(), (i+1)*nx_ + j) = constraint_A(4*i  , (i+1)*nx_ + j);
+            constraints.insert(4*i+1 + dynamics_A.rows(), i*nx_ + j)     = constraint_A(4*i+1, i*nx_ + j);
+            constraints.insert(4*i+1 + dynamics_A.rows(), (i+1)*nx_ + j) = constraint_A(4*i+1, (i+1)*nx_ + j);
+            constraints.insert(4*i+2 + dynamics_A.rows(), i*nx_ + j)     = constraint_A(4*i+2, i*nx_ + j);
+            constraints.insert(4*i+2 + dynamics_A.rows(), (i+1)*nx_ + j) = constraint_A(4*i+2, (i+1)*nx_ + j);
+            constraints.insert(4*i+3 + dynamics_A.rows(), i*nx_ + j)     = constraint_A(4*i+3, i*nx_ + j);
+            constraints.insert(4*i+3 + dynamics_A.rows(), (i+1)*nx_ + j) = constraint_A(4*i+3, (i+1)*nx_ + j);
         }
     }
 
@@ -184,9 +233,16 @@ void MPC::updateConstraints(const vector_t& x0)
     ub.segment(0,nx_) = x0;
     lb.segment(dynamics_b_lb.size(), constraint_b.size()) << constraint_b;
 
-    for (int i = 0; i < constraint_A.rows(); i++) {
-        for (int j = 0; j < nx_*mpc_params_.N; j++) {
-            constraints.coeffRef(i + dynamics_A.rows(), j) = constraint_A(i, j);
+    for (int i = 0; i < (mpc_params_.N-1); i++) {
+        for (int j = 0; j < nx_; j++) {
+            constraints.coeffRef(4*i   + dynamics_A.rows(), i*nx_ + j)     = constraint_A(4*i  , i*nx_ + j);
+            constraints.coeffRef(4*i   + dynamics_A.rows(), (i+1)*nx_ + j) = constraint_A(4*i  , (i+1)*nx_ + j);
+            constraints.coeffRef(4*i+1 + dynamics_A.rows(), i*nx_ + j)     = constraint_A(4*i+1, i*nx_ + j);
+            constraints.coeffRef(4*i+1 + dynamics_A.rows(), (i+1)*nx_ + j) = constraint_A(4*i+1, (i+1)*nx_ + j);
+            constraints.coeffRef(4*i+2 + dynamics_A.rows(), i*nx_ + j)     = constraint_A(4*i+2, i*nx_ + j);
+            constraints.coeffRef(4*i+2 + dynamics_A.rows(), (i+1)*nx_ + j) = constraint_A(4*i+2, (i+1)*nx_ + j);
+            constraints.coeffRef(4*i+3 + dynamics_A.rows(), i*nx_ + j)     = constraint_A(4*i+3, i*nx_ + j);
+            constraints.coeffRef(4*i+3 + dynamics_A.rows(), (i+1)*nx_ + j) = constraint_A(4*i+3, (i+1)*nx_ + j);
         }
     }
 }
@@ -229,7 +285,7 @@ void MPC::updateConstraintsSQP(ObstacleCollector O, vector_t sol, const vector_t
         b_constraint.push_back(b);
     }
     buildConstraintInequality(A_constraint, b_constraint);
-    f = -H*f_ref;
+    f = -H_cost*f_ref;
 }
 
 void MPC::updateCost()
