@@ -38,6 +38,7 @@ ObstacleCollector::ObstacleCollector() {
     obstacles.push_back(obstacle);
     freq.push_back(dist_freq(gen));
 
+    for (int i = 0; i < 25; i++){
     x_rand = dis_x(gen);
     y_rand = dis_y(gen);
     // obstacle.center << x_rand, y_rand;
@@ -52,6 +53,7 @@ ObstacleCollector::ObstacleCollector() {
     b_obs.push_back(obstacle.b);
     obstacles.push_back(obstacle);
     freq.push_back(dist_freq(gen));
+    }
 
 }
 

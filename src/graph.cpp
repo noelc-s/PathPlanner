@@ -29,6 +29,15 @@ scalar_t get_weight(vector_4t p1, vector_4t p2)
     return (p1 - p2).norm();
 }
 
+scalar_t get_weight(matrix_t controlPoints)
+{
+    scalar_t weight = 0;
+    for (int i = 0; i < controlPoints.rows()-1; i++) {
+        weight += (controlPoints.row(i+1) - controlPoints.row(i)).norm();
+    }
+    return weight;
+}
+
 std::ofstream open_log_file(std::string filename)
 {
     std::ofstream output_file(filename);

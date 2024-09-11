@@ -64,9 +64,9 @@ int main()
         timer.time("Find Path: ");
         log(optimalInd, output_file, "Path{" + (std::to_string)(i + 1) + "}");
 
-        vector_t sol;
+        vector_t sol, graph_sol;
         timer.start();
-        planner.refineWithMPC(sol, O, optimalInd, optimalPath, starting_loc, ending_loc);       
+        planner.refineWithMPC(graph_sol, sol, O, optimalInd, optimalPath, starting_loc, ending_loc);       
         timer.time("Refine: ");
         log(sol, output_file, "MPC{" + (std::to_string)(i + 1) + "}");
 

@@ -61,6 +61,7 @@ make_predecessor_recorder(PredecessorMap p) {
 
 bool adjacent(vector_4t p1, vector_4t p2);
 scalar_t get_weight(vector_4t p1, vector_4t p2);
+scalar_t get_weight(matrix_t controlPoints);
 
 std::ofstream open_log_file(std::string filename);
 Graph buildGraph(std::vector<vector_4t> points);
@@ -108,12 +109,12 @@ Graph buildGraph(std::vector<vector_4t> points, Func&& F_G, const matrix_t& D_nT
             if (i != j && adjacent(points[i], points[j], Fx, Gx, Fy, Gy, D_nT))
             {
                 EdgeProperties ep;
-                ep.weight = get_weight(points[i], points[j]);
                 vector_t x1_x2(2*points[0].size());
                 x1_x2 << points[i], points[j];
                 matrix_t mul = Bez*x1_x2;
                 matrix_t controlPoints(4,4);
                 controlPoints << Eigen::Map<matrix_t>(mul.data(),4,4);
+                ep.weight = get_weight(controlPoints);
                 ep.controlPoints = controlPoints;
                 ep.source_vertex_ind = i;
                 ep.target_vertex_ind = j;

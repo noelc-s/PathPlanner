@@ -17,7 +17,7 @@ if(exist("Path")==2)
 end
 
 %%% Beizer
-dt = result.MPC.dt;
+dt = result.Planner.bez_dt;
 gamma = 2;
 order = 2*gamma-1; % minimal curve
 m = 1;

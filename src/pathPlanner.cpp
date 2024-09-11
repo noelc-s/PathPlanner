@@ -141,8 +141,8 @@ void PathPlanner::cutGraph(ObstacleCollector O)
         int_vector_t membership(edges.size());
         obstacle.b += params_.buffer*vector_t::Ones(obstacle.b.size());
         timer.start();
-        graphQP.ObstacleMembershipHeuristic(obstacle, edges, membership);
-        // Kernel::GraphQP_ObstacleMembershipHeuristic(obstacle, edges, membership);
+        // graphQP.ObstacleMembershipHeuristic(obstacle, edges, membership);
+        Kernel::GraphQP_ObstacleMembershipHeuristic(obstacle, edges, membership);
         timer.time("    Heuristic check: ");
         //////////////////////////////////////////////
         VectorXd optimal_solution;
@@ -199,8 +199,6 @@ void PathPlanner::findPath(const std::vector<Obstacle> obstacles, vector_t start
     int starting_ind = -1;
     int ending_ind = -1;
 
-    solveGraph(points, starting_location, ending_location, starting_ind, ending_ind, cut_graph, d, p);
-
     bool ending_loc_in_obstacle = false;
     for (auto obstacle : obstacles) {
         obstacle.b += params_.buffer*vector_t::Ones(obstacle.b.size());
@@ -210,17 +208,16 @@ void PathPlanner::findPath(const std::vector<Obstacle> obstacles, vector_t start
     }
     if (ending_loc_in_obstacle) {
         ending_location = points[ending_ind];
+        optimalPathFound = 0;
+        optimalInd.push_back(-1);
+        optimalPath.clear();
+        return;
     }
+
+    solveGraph(points, starting_location, ending_location, starting_ind, ending_ind, cut_graph, d, p);
 
     for (Vertex v = vertex(ending_ind, cut_graph); v != vertex(starting_ind, cut_graph); v = p[v])
     {
-        if (v < 0 || v > points.size())
-        {
-            optimalPathFound = 0;
-            optimalInd.push_back(-1);
-            optimalPath.clear();
-            return;
-        }
         optimalInd.push_back(v);
         optimalPath.push_back(points[v]);
     }
@@ -229,7 +226,7 @@ void PathPlanner::findPath(const std::vector<Obstacle> obstacles, vector_t start
     optimalPath.push_back(points[vertex(starting_ind, cut_graph)]);
 }
 
-void PathPlanner::refineWithMPC(vector_t &sol, ObstacleCollector O, std::vector<int> optimalInd, std::vector<vector_t> optimalPath, vector_t starting_loc, vector_t ending_loc) {
+void PathPlanner::refineWithMPC(vector_t &graph_sol, vector_t &sol, ObstacleCollector O, std::vector<int> optimalInd, std::vector<vector_t> optimalPath, vector_t starting_loc, vector_t ending_loc) {
         Timer timer(PRINT_TIMING);
         timer.start();
 
@@ -239,9 +236,10 @@ void PathPlanner::refineWithMPC(vector_t &sol, ObstacleCollector O, std::vector<
         int index = 0;
 
         vector_t x0, x1;
-        if (index < optimalPath.size()-1) {
+        if (index < (int)optimalPath.size()-1) {
             x0 = optimalPath[optimalPath.size()-1-index];
             x1 = optimalPath[optimalPath.size()-1-(index+1)];
+
         } else {
             if (optimalPathFound) {
                 x0 = ending_loc;
@@ -266,7 +264,7 @@ void PathPlanner::refineWithMPC(vector_t &sol, ObstacleCollector O, std::vector<
             t = i*mpc_dt;
             if (t > (index+1) * bez_dt) {
                 index++;
-                if (index < optimalPath.size()-1) {
+                if (index < (int)optimalPath.size()-1) {
                     x0 = optimalPath[optimalPath.size()-1-index];
                     x1 = optimalPath[optimalPath.size()-1-(index+1)];
                 } else {
@@ -286,6 +284,7 @@ void PathPlanner::refineWithMPC(vector_t &sol, ObstacleCollector O, std::vector<
             sol.segment(i*mpc_->nx_,mpc_->nx_) << B->b(bez_t, controlPoints).transpose();
         }
         vector_t xg = x1;
+        graph_sol = sol;
     
         mpc_->updateConstraintsSQP(O, sol, xg);
         if (!mpc_->isInitialized) {
