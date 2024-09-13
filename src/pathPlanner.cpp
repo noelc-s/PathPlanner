@@ -57,7 +57,7 @@ void PathPlanner::F_G(const matrix_t &xbar, const matrix_t &f_xbar, const matrix
 void PathPlanner::initialize(const ObstacleCollector O)
 {
 
-    graphSettings.verbose = false;
+    graphSettings.verbose = PRINT_TIMING;
     graphSettings.polish = false;
 
     if (params_.use_random_grid) {
@@ -83,8 +83,8 @@ void PathPlanner::initialize(const ObstacleCollector O)
 
     edges = getBezEdges(graph, vertexInds);
 
-    graphQP.setupQP(graphInstance, edges, O.obstacles[0]);
-    graphQP.initializeQP(graphSolver, graphInstance, graphSettings);
+    // graphQP.setupQP(graphInstance, edges, O.obstacles[0]);
+    // graphQP.initializeQP(graphSolver, graphInstance, graphSettings);
 }
 
 std::vector<vector_4t> generateUniformPoints(int n, scalar_t min_x, scalar_t max_x, scalar_t min_y, scalar_t max_y,
@@ -135,51 +135,54 @@ void PathPlanner::cutGraph(ObstacleCollector &O, std::condition_variable &cv, st
     boost::copy_graph(graph, local_graph);
     Timer timer(PRINT_TIMING);
 
-    for (auto obstacle : O.obstacles)
+    timer.start();
+    int_vector_t Membership(O.obstacles.size() * edges.size());
+    Membership.setZero();
+    ObstacleCollector O_buffered = O;
+    for (auto &obstacle : O_buffered.obstacles)
     {
-        int_vector_t membership(edges.size());
         obstacle.b += params_.buffer*vector_t::Ones(obstacle.b.size());
-        timer.start();
-        // graphQP.ObstacleMembershipHeuristic(obstacle, edges, membership);
-        Kernel::GraphQP_ObstacleMembershipHeuristic(obstacle, edges, membership);
-        timer.time("    Heuristic check: ");
-        //////////////////////////////////////////////
-        VectorXd optimal_solution;
-        if ((membership.array() == 2).any()) {
-            std::vector<matrix_t> uncertain_edges;
-            for (size_t i = 0; i < membership.size(); ++i) {
-                if (membership[i] == 2) {
-                    uncertain_edges.push_back(edges[i]);
-                }
-            }
-            timer.time("    Copy Edges: ");
-            graphQP.setupQP(graphInstance, uncertain_edges, obstacle);
-            graphQP.initializeQP(graphSolver, graphInstance, graphSettings);
-
-            // graphQP.updateConstraints(graphSolver, obstacle, edges, membership);
-            // graphQP.updateConstraints(graphSolver, obstacle, edges);
-            //////////////////////////////////////////////
-            timer.time("    Update constraints: ");
-            graphQP.solveQP(graphSolver);
-            timer.time("    Solve: ");
-
-            optimal_solution = graphSolver.primal_solution();
-            percentageEdgesRemovedWithHeuristic = 1. - (float)uncertain_edges.size() / edges.size();
-        } else {
-            optimal_solution.resize(0);
-            percentageEdgesRemovedWithHeuristic = 1;
-        }
-        
-
-        timer.start();
-        //////////////////////////////////////////////
-        // cutGraphEdges(cut_graph, edges, vertexInds, obstacle.b.size(), optimal_solution);
-        cutGraphEdges(local_graph, edges, vertexInds, obstacle.b.size(), optimal_solution, membership);
-        //////////////////////////////////////////////
-        timer.time("    Cut graph edges: ");
-
-        // std::cout << "Percentage of nodes removed with heuristic: " <<  << std::endl;
     }
+    timer.time("    Buffer osbtacle: ");
+    Kernel::GraphQP_ObstacleMembershipHeuristic(O_buffered.obstacles, edges, Membership);
+    Eigen::Map<Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic>> MembershipMatrix(
+                            Membership.data(), edges.size(), O.obstacles.size());
+    timer.time("    Heuristic check: ");
+
+    std::vector<matrix_t> uncertain_edges;
+    std::vector<int> uncertain_indices;
+    bool any_uncertain_edges = false;
+    for (size_t e = 0; e < edges.size(); ++e) {
+        for (size_t o = 0; o < O.obstacles.size(); ++o) {
+            if (MembershipMatrix(e, o) == 2) {
+                any_uncertain_edges = true;
+                uncertain_edges.push_back(edges[e]);
+                uncertain_indices.push_back(o);
+            }
+        }
+    }
+    VectorXd optimal_solution;
+    if (any_uncertain_edges) {
+        timer.time("    Copy Edges: ");
+        graphQP.setupQP(graphInstance, uncertain_edges, uncertain_indices, O_buffered.obstacles);
+        graphQP.initializeQP(graphSolver, graphInstance, graphSettings);
+        timer.time("    Setup: ");
+        graphQP.solveQP(graphSolver);
+        timer.time("    Solve: ");
+        optimal_solution = graphSolver.primal_solution();
+        percentageEdgesRemovedWithHeuristic = 1. - (float)uncertain_edges.size() / edges.size();
+    } else {
+        optimal_solution.resize(0);
+        percentageEdgesRemovedWithHeuristic = 1;
+    }
+
+    timer.start();
+    //////////////////////////////////////////////
+    // cutGraphEdges(cut_graph, edges, vertexInds, obstacle.b.size(), optimal_solution);
+    cutGraphEdges(local_graph, edges, vertexInds, O.obstacles[0].b.size(), optimal_solution, MembershipMatrix);
+    //////////////////////////////////////////////
+    timer.time("    Cut graph edges: ");
+
     { 
         std::unique_lock<std::mutex> lck(m);
         cut_graph.clear();

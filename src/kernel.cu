@@ -43,20 +43,27 @@ namespace Kernel
         b_hyp = A_hyp[0] * obstacle_v[closest_point] + A_hyp[1] * obstacle_v[closest_point + 4];
     }
 
-    __global__ void obstacleMembershipHeuristic(double *obstacle_A, double *obstacle_b, double *Adj, double *v, const double *edges, int *member, const int num_edges)
+    __global__ void obstacleMembershipHeuristic(double *obstacle_A, double *obstacle_b, double *obstacle_Adj, double *obstacle_v, const double *edges, int *member, const int num_edges, const int num_obstacles)
     {
         int i = blockIdx.x * blockDim.x + threadIdx.x;
-        if (i >= num_edges)
+        if (i >= num_edges * num_obstacles)
             return;
 
-        const double *edge = &edges[i * 16];
+        const int edge_number = i % num_edges;
+        const int obstacle_number = i / num_edges;
+
+        const double *edge = &edges[edge_number * 16];
+        double *A = &obstacle_A[obstacle_number *  16];
+        double *b = &obstacle_b[obstacle_number * 4];
+        double *Adj = &obstacle_Adj[obstacle_number * 16];
+        double *v = &obstacle_v[obstacle_number * 8];
 
         bool in_obstacle = false;
         for (int k = 0; k < 4; k++) {
             bool result[4] = {false};
             for (int j = 0; j < 4; j++)
             {
-                result[j] = (obstacle_A[j] * edge[4*k] + obstacle_A[j + 4] * edge[4*k+1] + obstacle_A[j + 8] * edge[4*k+2] + obstacle_A[j + 12] * edge[4*k+3] - obstacle_b[j]) <= 0;
+                result[j] = (A[j] * edge[4*k] + A[j + 4] * edge[4*k+1] + A[j + 8] * edge[4*k+2] + A[j + 12] * edge[4*k+3] - b[j]) <= 0;
             }
             if (result[0] & result[1] & result[2] & result[3])
             {
@@ -77,7 +84,7 @@ namespace Kernel
             for (int j = 0; j < 4; j++) {
                 double A_hyp_[2] {0.0};
                 double b_hyp_ = 0.0;
-                getSeparatingHyperplane(obstacle_A, obstacle_b, Adj, v, &edge[j * 4], A_hyp_, b_hyp_);
+                getSeparatingHyperplane(A, b, Adj, v, &edge[j * 4], A_hyp_, b_hyp_);
                 A_hyp[0] += A_hyp_[0];
                 A_hyp[1] += A_hyp_[1];
                 b_hyp += b_hyp_;
@@ -101,16 +108,17 @@ namespace Kernel
         }
     }
 
-    void GraphQP_ObstacleMembershipHeuristic(Obstacle obstacle, const std::vector<matrix_t> &edges, int_vector_t &member)
+    void GraphQP_ObstacleMembershipHeuristic(std::vector<Obstacle> obstacles, const std::vector<matrix_t> &edges, int_vector_t &member)
     {
         int num_edges = edges.size();
-        int member_size = num_edges * sizeof(int);
+        int num_obstacles = obstacles.size();
+        int member_size = num_obstacles * num_edges * sizeof(int);
 
         // Memory sizes
-        size_t obstacle_A_size = 16 * sizeof(double);        // 4x4 matrix
-        size_t obstacle_b_size = 4 * sizeof(double);         // 4x1 vector
-        size_t obstacle_Adj_size = 16 * sizeof(double);         // 4x1 vector
-        size_t obstacle_v_size = 8 * sizeof(double);         // 4x1 vector
+        size_t obstacle_A_size = num_obstacles * 16 * sizeof(double);        // 4x4 matrix
+        size_t obstacle_b_size = num_obstacles * 4 * sizeof(double);         // 4x1 vector
+        size_t obstacle_Adj_size = num_obstacles * 16 * sizeof(double);         // 4x1 vector
+        size_t obstacle_v_size = num_obstacles * 8 * sizeof(double);         // 4x1 vector
         size_t edges_size = num_edges * 16 * sizeof(double); // num_edges x 4x4 matrix
 
         // Allocate memory on the device
@@ -129,7 +137,32 @@ namespace Kernel
         cudaMalloc((void **)&d_member, member_size);
 
         // Prepare edge data
+        double obstacle_A_flat[num_obstacles * 16];
+        double obstacle_b_flat[num_obstacles * 4];
+        double obstacle_Adj_flat[num_obstacles * 16];
+        double obstacle_v_flat[num_obstacles * 8];
         double edges_flat[num_edges * 16];
+
+        for (int o = 0; o < num_obstacles; o++) {
+            // copy obstacle A
+            for (int col = 0; col < 4; col++)
+            {
+                for (int row = 0; row < 4; row++)
+                {
+                    obstacle_A_flat[o * 16 + row + col*4] = obstacles[o].A(row, col);
+                    obstacle_Adj_flat[o * 16 + row + col*4] = obstacles[o].Adjacency(row, col);
+                }
+                obstacle_b_flat[o * 4 + col] = obstacles[o].b(col);
+            }
+            for (int col = 0; col < 2; col++)
+            {
+                for (int row = 0; row < 4; row++)
+                {
+                    obstacle_v_flat[o * 8 + row + col*4] = obstacles[o].v(row, col);
+                }
+            }
+        }
+        // copy edges
         for (int i = 0; i < num_edges; i++)
         {
             Eigen::MatrixXd mat = edges[i];
@@ -147,18 +180,22 @@ namespace Kernel
         // cudaEventCreate(&stop);
 
         // Copy data to device
-        cudaMemcpy(d_obstacle_A, obstacle.A.data(), obstacle_A_size, cudaMemcpyHostToDevice);
-        cudaMemcpy(d_obstacle_b, obstacle.b.data(), obstacle_b_size, cudaMemcpyHostToDevice);
-        cudaMemcpy(d_obstacle_Adj, obstacle.Adjacency.data(), obstacle_Adj_size, cudaMemcpyHostToDevice);
-        cudaMemcpy(d_obstacle_v, obstacle.v.data(), obstacle_v_size, cudaMemcpyHostToDevice);
+        cudaMemcpy(d_obstacle_A, obstacle_A_flat, obstacle_A_size, cudaMemcpyHostToDevice);
+        cudaMemcpy(d_obstacle_b, obstacle_b_flat, obstacle_b_size, cudaMemcpyHostToDevice);
+        cudaMemcpy(d_obstacle_Adj, obstacle_Adj_flat, obstacle_Adj_size, cudaMemcpyHostToDevice);
+        cudaMemcpy(d_obstacle_v, obstacle_v_flat, obstacle_v_size, cudaMemcpyHostToDevice);
+        // cudaMemcpy(d_obstacle_A, obstacles[0].A.data(), obstacle_A_size, cudaMemcpyHostToDevice);
+        // cudaMemcpy(d_obstacle_b, obstacles[0].b.data(), obstacle_b_size, cudaMemcpyHostToDevice);
+        // cudaMemcpy(d_obstacle_Adj, obstacles[0].Adjacency.data(), obstacle_Adj_size, cudaMemcpyHostToDevice);
+        // cudaMemcpy(d_obstacle_v, obstacles[0].v.data(), obstacle_v_size, cudaMemcpyHostToDevice);
         cudaMemcpy(d_edges, edges_flat, edges_size, cudaMemcpyHostToDevice);
 
         // Launch the kernel
         int blockSize = 256;
-        int gridSize = (num_edges + blockSize - 1) / blockSize;
+        int gridSize = (num_obstacles * num_edges + blockSize - 1) / blockSize;
 
         // cudaEventRecord(start);
-        obstacleMembershipHeuristic<<<gridSize, blockSize>>>(d_obstacle_A, d_obstacle_b, d_obstacle_Adj, d_obstacle_v, d_edges, d_member, num_edges);
+        obstacleMembershipHeuristic<<<gridSize, blockSize>>>(d_obstacle_A, d_obstacle_b, d_obstacle_Adj, d_obstacle_v, d_edges, d_member, num_edges, num_obstacles);
         // cudaEventRecord(stop);
 
         // Copy the result back to the host

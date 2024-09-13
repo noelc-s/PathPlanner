@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
 
     // for (int i = 0; i < 10000; i ++) {
         // std::cout << i << std::endl;
-        Kernel::GraphQP_ObstacleMembershipHeuristic(obstacles.obstacles[0], edges, membership);
+        Kernel::GraphQP_ObstacleMembershipHeuristic(obstacles.obstacles, edges, membership);
     // }
 
     for (int i = 0; i < membership.size(); i++)

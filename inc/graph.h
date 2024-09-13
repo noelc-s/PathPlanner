@@ -25,14 +25,14 @@ public:
     SparseMatrix<double> constraint_matrix;
     Eigen::VectorXd lb, ub;
 
-    void setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges, const Obstacle obstacle);
+    void setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges, const std::vector<int> obst_ind, const std::vector<Obstacle> obstacles);
     int initializeQP(OsqpSolver &solver, OsqpInstance instance, OsqpSettings settings);
     int solveQP(OsqpSolver &solver);
 
-    void buildConstraintMatrix(Obstacle obstacle, const std::vector<matrix_t> edges);
+    void buildConstraintMatrix(std::vector<Obstacle> obstacles, const std::vector<matrix_t> edges, const std::vector<int> obst_ind);
     void ObstacleMembershipHeuristic(Obstacle obstacle, const std::vector<matrix_t> edges, int_vector_t &member);
-    void updateConstraints(OsqpSolver &solver, Obstacle obstacle, const std::vector<matrix_t> edges);
-    void updateConstraints(OsqpSolver &solver, Obstacle obstacle, const std::vector<matrix_t> edges, const int_vector_t &member);
+    // void updateConstraints(OsqpSolver &solver, Obstacle obstacle, const std::vector<matrix_t> edges);
+    // void updateConstraints(OsqpSolver &solver, Obstacle obstacle, const std::vector<matrix_t> edges, const int_vector_t &member);
 };
 
 const scalar_t kInfinity = std::numeric_limits<scalar_t>::infinity();
@@ -68,7 +68,7 @@ Graph buildGraph(std::vector<vector_4t> points);
 void cutGraphEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std::pair<int,int>> vertexInds,
                 const int num_obstacle_faces, VectorXd optimal_solution);
 void cutGraphEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std::pair<int,int>> vertexInds, 
-                const int num_obstacle_faces, VectorXd optimal_solution, int_vector_t membership);                
+                const int num_obstacle_faces, VectorXd optimal_solution, Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> membership);                
 void solveGraph(std::vector<vector_4t> points, vector_4t starting_loc, vector_4t ending_loc,
     int &starting_ind, int& ending_ind, Graph g, std::vector<scalar_t> d, std::vector<Vertex>& p);
 std::vector<matrix_t> getBezEdges(const Graph graph, std::vector<std::pair<int,int>> &vertexInds);

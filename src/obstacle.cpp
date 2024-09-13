@@ -1,5 +1,9 @@
 #include "../inc/obstacle.h"
 
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
 ObstacleCollector::ObstacleCollector() {
     Obstacle obstacle;
     const int num_obstacle_faces = 4;
@@ -19,8 +23,8 @@ ObstacleCollector::ObstacleCollector() {
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis_x(-1, 1);
-    std::uniform_real_distribution<> dis_y(-2, 2);
+    std::uniform_real_distribution<> dis_x(-2.5, 2.5);
+    std::uniform_real_distribution<> dis_y(-1.5, 1.5);
     std::uniform_real_distribution<> dist_freq(1, 3);
 
     scalar_t x_rand = dis_x(gen);
@@ -38,12 +42,12 @@ ObstacleCollector::ObstacleCollector() {
     obstacles.push_back(obstacle);
     freq.push_back(dist_freq(gen));
 
-    for (int i = 0; i < 25; i++){
+    for (int i = 0; i < 10; i++){
     x_rand = dis_x(gen);
     y_rand = dis_y(gen);
-    obstacle.center << x_rand, y_rand;
+    obstacle.center << x_rand + sgn(x_rand)*0.1, y_rand + sgn(y_rand)*0.1;
     // obstacle.center << -0.5, 0;
-    obstacle_size = 0.05;
+    obstacle_size = 0.1;
     obstacle.b << obstacle_size + obstacle.center(0), obstacle_size - obstacle.center(0), obstacle_size + obstacle.center(1), obstacle_size - obstacle.center(1);
     obstacle.v << obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1),
         obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),

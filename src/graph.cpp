@@ -88,15 +88,17 @@ GraphQP::GraphQP()
 
 }
 
-void GraphQP::setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges, const Obstacle obstacle)
+void GraphQP::setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges, const std::vector<int> obst_ind, const std::vector<Obstacle> obstacles)
 {
     // decision variables are lambda_i and slack_i for each adj pt. [l1 l2 ... s1 s2 ...]
     // decision variables per point = number of vertices in edge control point polytope + number of obstacle faces;
 
+    // TODO: Assumes that the obstacles are all the same in terms of number of faces!
+
     const int total_adjacent_pts = std::accumulate(edges.begin(), edges.end(), 0, 
                                  [](int sum, const matrix_t& mat) { return sum + mat.cols(); });    
 
-    const int num_obstacle_faces = obstacle.b.size();
+    const int num_obstacle_faces = obstacles[0].b.size();
     const int num_edges = edges.size();
     
     SparseMatrix<double> objective_matrix(total_adjacent_pts + num_edges * num_obstacle_faces, 
@@ -113,7 +115,7 @@ void GraphQP::setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges,
     constraint_matrix.resize(num_constaints, total_adjacent_pts + num_edges * num_obstacle_faces);
     lb.resize(num_constaints);
     ub.resize(num_constaints);
-    buildConstraintMatrix(obstacle, edges);
+    buildConstraintMatrix(obstacles, edges, obst_ind);
 
     instance.lower_bounds = lb;
     instance.upper_bounds = ub;
@@ -124,9 +126,9 @@ void GraphQP::setupQP(OsqpInstance& instance, const std::vector<matrix_t> edges,
     // std::cout << instance.upper_bounds << std::endl;
 }
 
-void GraphQP::buildConstraintMatrix(Obstacle obstacle, const std::vector<matrix_t> edges)
+void GraphQP::buildConstraintMatrix(std::vector<Obstacle> obstacles, const std::vector<matrix_t> edges, const std::vector<int> obst_ind)
 {
-    const int num_obstacle_faces = obstacle.b.size();
+    const int num_obstacle_faces = obstacles[0].b.size();
     std::vector<Triplet<double>> tripletsA;
 
     int variable_index = 0;
@@ -157,7 +159,7 @@ void GraphQP::buildConstraintMatrix(Obstacle obstacle, const std::vector<matrix_
         for (int i = 0; i < num_reachable_pts; ++i)
         {
             matrix_t constraint(num_obstacle_faces, 1);
-            constraint << obstacle.A * edges[p].block(0, i, edges[p].rows(), 1);
+            constraint << obstacles[obst_ind[p]].A * edges[p].block(0, i, edges[p].rows(), 1);
             for (int j = 0; j < num_obstacle_faces; j++)
             {
                 tripletsA.emplace_back(constraint_index + 1 + num_reachable_pts + j, variable_index + i, constraint(j));
@@ -171,7 +173,7 @@ void GraphQP::buildConstraintMatrix(Obstacle obstacle, const std::vector<matrix_
         for (int j = 0; j < num_obstacle_faces; ++j)
         {
             lb[constraint_index + 1 + num_reachable_pts + j] = -kInfinity;
-            ub[constraint_index + 1 + num_reachable_pts + j] = obstacle.b[j];
+            ub[constraint_index + 1 + num_reachable_pts + j] = obstacles[obst_ind[p]].b[j];
         }
         constraint_index += 1 + num_reachable_pts + num_obstacle_faces;
         variable_index += num_reachable_pts + num_obstacle_faces;
@@ -213,99 +215,99 @@ void GraphQP::ObstacleMembershipHeuristic(Obstacle obstacle, const std::vector<m
     }
 }
 
-void GraphQP::updateConstraints(OsqpSolver &solver, Obstacle obstacle, const std::vector<matrix_t> edges)
-{
-    const int total_adjacent_pts = std::accumulate(edges.begin(), edges.end(), 0, 
-                                 [](int sum, const matrix_t& mat) { return sum + mat.cols(); }); 
-    const int num_edges = edges.size();
-    const int num_obstacle_faces = obstacle.b.size();
-    const int num_constraints = num_edges + num_edges * num_obstacle_faces + total_adjacent_pts;
+// void GraphQP::updateConstraints(OsqpSolver &solver, Obstacle obstacle, const std::vector<matrix_t> edges)
+// {
+//     const int total_adjacent_pts = std::accumulate(edges.begin(), edges.end(), 0, 
+//                                  [](int sum, const matrix_t& mat) { return sum + mat.cols(); }); 
+//     const int num_edges = edges.size();
+//     const int num_obstacle_faces = obstacle.b.size();
+//     const int num_constraints = num_edges + num_edges * num_obstacle_faces + total_adjacent_pts;
 
-    int variable_index = 0;
-    int constraint_index = 0;
-    int num_reachable_pts = -1;
+//     int variable_index = 0;
+//     int constraint_index = 0;
+//     int num_reachable_pts = -1;
 
-    Timer timer(PRINT_TIMING);
-    timer.start();
-    for (int p = 0; p < num_edges; p++)
-    {
-        num_reachable_pts = edges[p].cols();
+//     Timer timer(PRINT_TIMING);
+//     timer.start();
+//     for (int p = 0; p < num_edges; p++)
+//     {
+//         num_reachable_pts = edges[p].cols();
         
-        for (int i = 0; i < num_reachable_pts; ++i)
-        {
-            matrix_t constraint(num_obstacle_faces, 1);
-            constraint << obstacle.A * edges[p].block(0, i, edges[p].rows(), 1);
-            for (int j = 0; j < num_obstacle_faces; j++)
-            {
-                constraint_matrix.coeffRef(constraint_index + 1 + num_reachable_pts + j, variable_index + i) = constraint(j);
-            }
-        }
+//         for (int i = 0; i < num_reachable_pts; ++i)
+//         {
+//             matrix_t constraint(num_obstacle_faces, 1);
+//             constraint << obstacle.A * edges[p].block(0, i, edges[p].rows(), 1);
+//             for (int j = 0; j < num_obstacle_faces; j++)
+//             {
+//                 constraint_matrix.coeffRef(constraint_index + 1 + num_reachable_pts + j, variable_index + i) = constraint(j);
+//             }
+//         }
 
-        for (int j = 0; j < num_obstacle_faces; ++j)
-        {
-            lb[constraint_index + 1 + num_reachable_pts + j] = -kInfinity;
-            ub[constraint_index + 1 + num_reachable_pts + j] = obstacle.b[j];
-        }
-        constraint_index += 1 + num_reachable_pts + num_obstacle_faces;
-        variable_index += num_reachable_pts + num_obstacle_faces;
-    }
-    timer.time("        Modification:");
+//         for (int j = 0; j < num_obstacle_faces; ++j)
+//         {
+//             lb[constraint_index + 1 + num_reachable_pts + j] = -kInfinity;
+//             ub[constraint_index + 1 + num_reachable_pts + j] = obstacle.b[j];
+//         }
+//         constraint_index += 1 + num_reachable_pts + num_obstacle_faces;
+//         variable_index += num_reachable_pts + num_obstacle_faces;
+//     }
+//     timer.time("        Modification:");
 
-    auto status1 = solver.UpdateConstraintMatrix(constraint_matrix);
-    timer.time("        update constraint matrix:");
-    auto status2 = solver.SetBounds(lb, ub);
-    timer.time("        set bounds:");
-}
+//     auto status1 = solver.UpdateConstraintMatrix(constraint_matrix);
+//     timer.time("        update constraint matrix:");
+//     auto status2 = solver.SetBounds(lb, ub);
+//     timer.time("        set bounds:");
+// }
 
-void GraphQP::updateConstraints(OsqpSolver &solver, Obstacle obstacle, const std::vector<matrix_t> edges, const int_vector_t &member) {
-    // constraint_matrix.setZero();
-    const int num_edges = edges.size();
-    const int num_obstacle_faces = obstacle.b.size();
+// void GraphQP::updateConstraints(OsqpSolver &solver, Obstacle obstacle, const std::vector<matrix_t> edges, const int_vector_t &member) {
+//     // constraint_matrix.setZero();
+//     const int num_edges = edges.size();
+//     const int num_obstacle_faces = obstacle.b.size();
 
-    int variable_index = 0;
-    int constraint_index = 0;
-    int num_reachable_pts = -1;
+//     int variable_index = 0;
+//     int constraint_index = 0;
+//     int num_reachable_pts = -1;
 
-    Timer timer(PRINT_TIMING);
-    timer.start();
-    for (int p = 0; p < num_edges; p++)
-    {
-        num_reachable_pts = edges[p].cols();
+//     Timer timer(PRINT_TIMING);
+//     timer.start();
+//     for (int p = 0; p < num_edges; p++)
+//     {
+//         num_reachable_pts = edges[p].cols();
     
-        for (int i = 0; i < num_reachable_pts; ++i)
-        {
-            matrix_t constraint(num_obstacle_faces, 1);
-            constraint << obstacle.A * edges[p].block(0, i, edges[p].rows(), 1);
-            for (int j = 0; j < num_obstacle_faces; j++)
-            {
-                if (member(p) == 2) {
-                    constraint_matrix.coeffRef(constraint_index + 1 + num_reachable_pts + j, variable_index + i) = constraint(j);
-                } else {
-                    constraint_matrix.coeffRef(constraint_index + 1 + num_reachable_pts + j, variable_index + i) = 0;
-                }
-            }
-        }
+//         for (int i = 0; i < num_reachable_pts; ++i)
+//         {
+//             matrix_t constraint(num_obstacle_faces, 1);
+//             constraint << obstacle.A * edges[p].block(0, i, edges[p].rows(), 1);
+//             for (int j = 0; j < num_obstacle_faces; j++)
+//             {
+//                 if (member(p) == 2) {
+//                     constraint_matrix.coeffRef(constraint_index + 1 + num_reachable_pts + j, variable_index + i) = constraint(j);
+//                 } else {
+//                     constraint_matrix.coeffRef(constraint_index + 1 + num_reachable_pts + j, variable_index + i) = 0;
+//                 }
+//             }
+//         }
 
-        for (int j = 0; j < num_obstacle_faces; ++j)
-        {
-            if (member(p) == 2) {
-                lb[constraint_index + 1 + num_reachable_pts + j] = -kInfinity;
-                ub[constraint_index + 1 + num_reachable_pts + j] = obstacle.b[j];
-            } else {
-                lb[constraint_index + 1 + num_reachable_pts + j] = -kInfinity;
-                ub[constraint_index + 1 + num_reachable_pts + j] = 1;
-            }
-        }
-        constraint_index += 1 + num_reachable_pts + num_obstacle_faces;
-        variable_index += num_reachable_pts + num_obstacle_faces;
-    }
-    timer.time("        Modification:");
+//         for (int j = 0; j < num_obstacle_faces; ++j)
+//         {
+//             if (member(p) == 2) {
+//                 lb[constraint_index + 1 + num_reachable_pts + j] = -kInfinity;
+//                 ub[constraint_index + 1 + num_reachable_pts + j] = obstacle.b[j];
+//             } else {
+//                 lb[constraint_index + 1 + num_reachable_pts + j] = -kInfinity;
+//                 ub[constraint_index + 1 + num_reachable_pts + j] = 1;
+//             }
+//         }
+//         constraint_index += 1 + num_reachable_pts + num_obstacle_faces;
+//         variable_index += num_reachable_pts + num_obstacle_faces;
+//     }
+//     timer.time("        Modification:");
 
-    auto status1 = solver.UpdateConstraintMatrix(constraint_matrix);
-    timer.time("        update constraint matrix:");
-    auto status2 = solver.SetBounds(lb, ub);
-    timer.time("        set bounds:");
-}
+//     auto status1 = solver.UpdateConstraintMatrix(constraint_matrix);
+//     timer.time("        update constraint matrix:");
+//     auto status2 = solver.SetBounds(lb, ub);
+//     timer.time("        set bounds:");
+// }
 
 int GraphQP::initializeQP(OsqpSolver &solver, OsqpInstance instance, OsqpSettings settings)
 {
@@ -344,18 +346,22 @@ void cutGraphEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std:
 }
 
 void cutGraphEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std::pair<int,int>> vertexInds, 
-                    const int num_obstacle_faces, VectorXd optimal_solution, int_vector_t membership)
+                    const int num_obstacle_faces, VectorXd optimal_solution, Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> MembershipMatrix)
 {
     int dec_var_ind = 0;
     for (int i = 0; i < edges.size(); i++) {
-        if (membership[i] == 1) {
+        if ((MembershipMatrix.row(i).array() == 1).any()) {
             remove_edge(vertexInds[i].first, vertexInds[i].second, g);
-        } else if (membership[i] == 2) {
-            if (optimal_solution.segment(dec_var_ind + edges[i].cols(),num_obstacle_faces).norm() < viol_tol)
-            {
-                remove_edge(vertexInds[i].first, vertexInds[i].second, g);
+        } if ((MembershipMatrix.row(i).array() == 2).any()) {
+            for (int o = 0; o < MembershipMatrix.cols(); o++) {
+                if (MembershipMatrix(i, o) == 2) {
+                    if (optimal_solution.segment(dec_var_ind + edges[i].cols(),num_obstacle_faces).norm() < viol_tol)
+                    {
+                        remove_edge(vertexInds[i].first, vertexInds[i].second, g);
+                    }
+                    dec_var_ind += edges[i].cols() + num_obstacle_faces;
+                }
             }
-            dec_var_ind += edges[i].cols() + num_obstacle_faces;
         }
     }
 }

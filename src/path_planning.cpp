@@ -53,10 +53,10 @@ int main()
     std::condition_variable cv;
     std::mutex m;
 
-    std::thread cutGraph(static_cast<void (PathPlanner::*)(ObstacleCollector&, std::ofstream&, std::condition_variable&, std::mutex&)>(&PathPlanner::cutGraph),
-                        &planner, std::ref(O), std::ref(output_file), std::ref(cv), std::ref(m));
+    // std::thread cutGraph(static_cast<void (PathPlanner::*)(ObstacleCollector&, std::ofstream&, std::condition_variable&, std::mutex&)>(&PathPlanner::cutGraph),
+    //                     &planner, std::ref(O), std::ref(output_file), std::ref(cv), std::ref(m));
 
-                        sleep(1);
+    //                     sleep(1);
 
     for (int i = 0; i < params.num_traj; i++)
     {
@@ -65,8 +65,8 @@ int main()
         logObstaclePosition(O.obstacles, output_file, i);
 
         timer.start();
-        // planner.cutGraph(O, output_file);
-        // timer.time("Cut: ");
+        planner.cutGraph(O, output_file, cv, m);
+        timer.time("Cut: ");
 
         std::vector<int> optimalInd;
         std::vector<vector_t> optimalPath;
@@ -76,6 +76,7 @@ int main()
         log(optimalInd, output_file, "Path{" + (std::to_string)(i + 1) + "}");
 
         vector_t sol, graph_sol;
+        graph_sol.resize(mpc_params.N * planner.mpc_->nx_);
         timer.start();
         planner.refineWithMPC(graph_sol, sol, O, optimalInd, optimalPath, starting_loc, ending_loc);       
         timer.time("Refine: ");
