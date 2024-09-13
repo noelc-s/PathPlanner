@@ -41,9 +41,9 @@ ObstacleCollector::ObstacleCollector() {
     for (int i = 0; i < 25; i++){
     x_rand = dis_x(gen);
     y_rand = dis_y(gen);
-    // obstacle.center << x_rand, y_rand;
-    obstacle.center << -0.5, 0;
-    obstacle_size = 0.16;
+    obstacle.center << x_rand, y_rand;
+    // obstacle.center << -0.5, 0;
+    obstacle_size = 0.05;
     obstacle.b << obstacle_size + obstacle.center(0), obstacle_size - obstacle.center(0), obstacle_size + obstacle.center(1), obstacle_size - obstacle.center(1);
     obstacle.v << obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1),
         obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),

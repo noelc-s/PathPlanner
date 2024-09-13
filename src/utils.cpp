@@ -57,6 +57,8 @@ void loadPlannerParams(std::string filename, Params &p, MPC_Params &mpc_p, Plann
     p_p.use_planner = config["use_planner"].as<bool>();
     p_p.buffer = config["Planner"]["buffer"].as<scalar_t>();
     p_p.bez_dt = config["Planner"]["bez_dt"].as<scalar_t>();
+    p_p.use_zed = config["Planner"]["use_zed"].as<bool>();
+    p_p.use_random_grid = config["Planner"]["use_random_grid"].as<bool>();
 
 }
 

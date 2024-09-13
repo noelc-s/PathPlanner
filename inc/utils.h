@@ -32,6 +32,8 @@ struct Planner_Params
     bool use_planner;
     scalar_t buffer;
     scalar_t bez_dt;
+    bool use_zed;
+    bool use_random_grid;
 };
 
 struct Params

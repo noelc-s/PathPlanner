@@ -32,8 +32,8 @@ scalar_t get_weight(vector_4t p1, vector_4t p2)
 scalar_t get_weight(matrix_t controlPoints)
 {
     scalar_t weight = 0;
-    for (int i = 0; i < controlPoints.rows()-1; i++) {
-        weight += (controlPoints.row(i+1) - controlPoints.row(i)).norm();
+    for (int i = 0; i < controlPoints.cols()-1; i++) {
+        weight += (controlPoints.col(i+1) - controlPoints.col(i)).norm();
     }
     return weight;
 }

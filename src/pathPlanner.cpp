@@ -60,19 +60,22 @@ void PathPlanner::initialize(const ObstacleCollector O)
     graphSettings.verbose = false;
     graphSettings.polish = false;
 
-    points = generateUniformPoints(
-        params_.num_points,
-        params_.x_bounds[0], params_.x_bounds[1],
-        params_.x_bounds[2], params_.x_bounds[3],
-        params_.dx_bounds[0], params_.dx_bounds[1],
-        params_.dx_bounds[2], params_.dx_bounds[3]);
-    
-    // points = generateGridPoints(
-    //     params_.num_points,
-    //     params_.x_bounds[0], params_.x_bounds[1],
-    //     params_.x_bounds[2], params_.x_bounds[3],
-    //     params_.dx_bounds[0], params_.dx_bounds[1],
-    //     params_.dx_bounds[2], params_.dx_bounds[3]);
+    if (params_.use_random_grid) {
+        points = generateUniformPoints(
+            params_.num_points,
+            params_.x_bounds[0], params_.x_bounds[1],
+            params_.x_bounds[2], params_.x_bounds[3],
+            params_.dx_bounds[0], params_.dx_bounds[1],
+            params_.dx_bounds[2], params_.dx_bounds[3]);   
+    } else {
+        points = generateGridPoints(
+            params_.num_points,
+            params_.x_bounds[0], params_.x_bounds[1],
+            params_.x_bounds[2], params_.x_bounds[3],
+            params_.dx_bounds[0], params_.dx_bounds[1],
+            params_.dx_bounds[2], params_.dx_bounds[3]);
+    }
+
 
     auto F_G_bound = std::bind(&PathPlanner::F_G, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
 
@@ -111,19 +114,14 @@ std::vector<vector_4t> generateGridPoints(int n, scalar_t min_x, scalar_t max_x,
                                              scalar_t min_dx, scalar_t max_dx, scalar_t min_dy, scalar_t max_dy)
 {
     std::vector<vector_4t> points;
-    points.reserve(n);
+    scalar_t sqrt_val = pow(n, 0.5);
+    int floor_sqrt_val = (int) sqrt_val;
+    points.reserve(pow(floor_sqrt_val, 2));
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis_x(min_x, max_x);
-    std::uniform_real_distribution<> dis_y(min_y, max_y);
-    std::uniform_real_distribution<> dis_dx(min_dx, max_dx);
-    std::uniform_real_distribution<> dis_dy(min_dy, max_dy);
-
-    for (int i = 0; i < n; ++i)
+    for (int i = 0; i < pow(floor_sqrt_val, 2); ++i)
     {
         vector_4t point;
-        point << i%10 * (max_x - min_x) / 10 + min_x, i/10 * (max_y - min_y) / 10 + min_y, 0, 0;
+        point << i%floor_sqrt_val * (max_x - min_x) / floor_sqrt_val + min_x, i/floor_sqrt_val * (max_y - min_y) / floor_sqrt_val + min_y, 0, 0;
         points.push_back(point);
     }
 
