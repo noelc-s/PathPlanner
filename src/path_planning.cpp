@@ -11,6 +11,9 @@
 #include "../inc/utils.h"
 #include "../inc/pathPlanner.h"
 
+#include <thread>
+#include <condition_variable>
+
 #include <random>
 
 int main()
@@ -47,6 +50,14 @@ int main()
     log(planner.points, graph_file, "Points");
     log(planner.edges, graph_file, "EdgeControlPoints");
 
+    std::condition_variable cv;
+    std::mutex m;
+
+    std::thread cutGraph(static_cast<void (PathPlanner::*)(ObstacleCollector&, std::ofstream&, std::condition_variable&, std::mutex&)>(&PathPlanner::cutGraph),
+                        &planner, std::ref(O), std::ref(output_file), std::ref(cv), std::ref(m));
+
+                        sleep(1);
+
     for (int i = 0; i < params.num_traj; i++)
     {
         std::cout << "Trajectory percentage: " << (float)(i + 1) / params.num_traj << std::endl;
@@ -54,13 +65,13 @@ int main()
         logObstaclePosition(O.obstacles, output_file, i);
 
         timer.start();
-        planner.cutGraph(O, output_file);
-        timer.time("Cut: ");
+        // planner.cutGraph(O, output_file);
+        // timer.time("Cut: ");
 
         std::vector<int> optimalInd;
         std::vector<vector_t> optimalPath;
         timer.start();
-        planner.findPath(O.obstacles, starting_loc, ending_loc, optimalInd, optimalPath);
+        planner.findPath(O.obstacles, starting_loc, ending_loc, optimalInd, optimalPath, cv, m);
         timer.time("Find Path: ");
         log(optimalInd, output_file, "Path{" + (std::to_string)(i + 1) + "}");
 

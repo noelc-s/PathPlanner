@@ -383,6 +383,9 @@ void solveGraph(std::vector<vector_4t> points, vector_4t starting_loc, vector_4t
     // Create a property map that extracts the weight from the custom EdgeProperties
     auto weight_map = boost::weight_map(boost::get(&EdgeProperties::weight, g));
 
+    if (starting_ind == -1 || ending_ind == -1) {
+        return;
+    }
     dijkstra_shortest_paths(g, vertex(starting_ind, g),
                 weight_map.distance_map(&d[0]).visitor(make_predecessor_recorder(&p[0])));
 }

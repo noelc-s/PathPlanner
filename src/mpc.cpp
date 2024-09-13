@@ -29,8 +29,8 @@ MPC::MPC(const int nx, const int nu, const MPC_Params loaded_p, const matrix_t &
             0, mpc_params_.dt;
 
     settings.verbose = PRINT_TIMING;
-    settings.polish = false;
-    settings.max_iter = 20;
+    settings.polish = true;
+    settings.max_iter = 200;
 }
 
 void MPC::buildDynamicEquality() {

@@ -114,7 +114,8 @@ Graph buildGraph(std::vector<vector_4t> points, Func&& F_G, const matrix_t& D_nT
                 matrix_t mul = Bez*x1_x2;
                 matrix_t controlPoints(4,4);
                 controlPoints << Eigen::Map<matrix_t>(mul.data(),4,4);
-                ep.weight = get_weight(controlPoints);
+                // ep.weight = get_weight(controlPoints);
+                ep.weight = get_weight(points[i], points[j]);
                 ep.controlPoints = controlPoints;
                 ep.source_vertex_ind = i;
                 ep.target_vertex_ind = j;

@@ -3,6 +3,7 @@
 #include "Bezier.h"
 #include "graph.h"
 #include <random>
+#include <condition_variable>
 
 using FunctionType = std::function<void(const Eigen::MatrixXd&, const Eigen::MatrixXd&, const Eigen::MatrixXd&, int,
                                          const Eigen::MatrixXd&, const Eigen::MatrixXd&, const Eigen::MatrixXd&,
@@ -55,9 +56,10 @@ public:
 
     void F_G(const matrix_t& xbar, const matrix_t& f_xbar, const matrix_t& g_xbar, matrix_t& F, matrix_t& G);
 
-    void cutGraph(ObstacleCollector O);
-    void cutGraph(ObstacleCollector O, std::ofstream &output_file);
-    void findPath(const std::vector<Obstacle> obstacles, vector_t starting_location, vector_t &ending_location, std::vector<int> &optimalInd, std::vector<vector_t> &optimalPath);
+    void cutGraph(ObstacleCollector &O, std::condition_variable &cv, std::mutex &m);
+    void cutGraph(ObstacleCollector &O, std::ofstream &output_file, std::condition_variable &cv, std::mutex &m);
+    void cutGraphLoop(ObstacleCollector &O, std::ofstream &output_file, std::condition_variable &cv, std::mutex &m);
+    void findPath(const std::vector<Obstacle> obstacles, vector_t starting_location, vector_t &ending_location, std::vector<int> &optimalInd, std::vector<vector_t> &optimalPath, std::condition_variable &cv, std::mutex &m);
     void refineWithMPC(vector_t &graph_sol, vector_t &sol, ObstacleCollector O, std::vector<int> optimalInd, std::vector<vector_t> optimalPath, vector_t starting_loc, vector_t ending_loc);
 };
 
