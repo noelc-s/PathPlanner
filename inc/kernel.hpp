@@ -9,6 +9,7 @@
 namespace Kernel
 {
     void GraphQP_ObstacleMembershipHeuristic(std::vector<Obstacle> obstacles, const std::vector<Eigen::MatrixXd>& edges, int_vector_t& member);
+    void MPC_GetActiveConstraints(std::vector<Obstacle> obstacles, const vector_t &sol, vector_t &A1, vector_t &A2, vector_t &b, vector_t &dist);
 }
 
 #endif

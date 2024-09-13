@@ -1,6 +1,7 @@
 #include <iostream>
 #include "kernel.hpp"
 #include "Types.h"
+#include "utils.h"
 #include <Eigen/Core>
 
 // Main
@@ -36,11 +37,18 @@ int main(int argc, char ** argv)
 
     // for (int i = 0; i < 10000; i ++) {
         // std::cout << i << std::endl;
-        Kernel::GraphQP_ObstacleMembershipHeuristic(obstacles.obstacles, edges, membership);
+        // Kernel::GraphQP_ObstacleMembershipHeuristic(obstacles.obstacles, edges, membership);
     // }
 
-    for (int i = 0; i < membership.size(); i++)
-        std::cout << membership[i] << std::endl;
+    // for (int i = 0; i < membership.size(); i++)
+    //     std::cout << membership[i] << std::endl;
+
+    Timer timer(true);
+    for (int i = 0; i < 100; i++) {
+        timer.start();
+        int_vector_t Membership(obstacles.obstacles.size() * edges.size());
+        timer.time("Dynamically allocate membership: ");
+    }
 
 	return 0;
 }

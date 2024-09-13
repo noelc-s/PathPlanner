@@ -137,34 +137,44 @@ void PathPlanner::cutGraph(ObstacleCollector &O, std::condition_variable &cv, st
 
     timer.start();
     int_vector_t Membership(O.obstacles.size() * edges.size());
-    Membership.setZero();
+    timer.time("    Dynamically allocate membership: ");
     ObstacleCollector O_buffered = O;
+    // TODO: assumes that all obstacles are the same complexity (num faces)!
+    static const vector_t ones = vector_t::Ones(O_buffered.obstacles[0].b.size());
     for (auto &obstacle : O_buffered.obstacles)
     {
-        obstacle.b += params_.buffer*vector_t::Ones(obstacle.b.size());
+        obstacle.b += params_.buffer*ones;
     }
     timer.time("    Buffer osbtacle: ");
     Kernel::GraphQP_ObstacleMembershipHeuristic(O_buffered.obstacles, edges, Membership);
-    Eigen::Map<Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic>> MembershipMatrix(
-                            Membership.data(), edges.size(), O.obstacles.size());
     timer.time("    Heuristic check: ");
+    Eigen::Map<Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic>> MembershipMatrix(
+                        Membership.data(), edges.size(), O.obstacles.size());
+    timer.time("    Heuristic map to matrix: ");
 
     std::vector<matrix_t> uncertain_edges;
-    std::vector<int> uncertain_indices;
+    std::vector<int> uncertain_obst_indices;
+    std::vector<int> uncertain_edge_indices;
+    std::vector<int> cut_indeces;
     bool any_uncertain_edges = false;
     for (size_t e = 0; e < edges.size(); ++e) {
         for (size_t o = 0; o < O.obstacles.size(); ++o) {
+            if (MembershipMatrix(e, o) == 1) {
+                cut_indeces.push_back(e);
+                break;
+            }
             if (MembershipMatrix(e, o) == 2) {
                 any_uncertain_edges = true;
                 uncertain_edges.push_back(edges[e]);
-                uncertain_indices.push_back(o);
+                uncertain_obst_indices.push_back(o);
+                uncertain_edge_indices.push_back(e);
             }
         }
     }
     VectorXd optimal_solution;
     if (any_uncertain_edges) {
         timer.time("    Copy Edges: ");
-        graphQP.setupQP(graphInstance, uncertain_edges, uncertain_indices, O_buffered.obstacles);
+        graphQP.setupQP(graphInstance, uncertain_edges, uncertain_obst_indices, O_buffered.obstacles);
         graphQP.initializeQP(graphSolver, graphInstance, graphSettings);
         timer.time("    Setup: ");
         graphQP.solveQP(graphSolver);
@@ -179,7 +189,30 @@ void PathPlanner::cutGraph(ObstacleCollector &O, std::condition_variable &cv, st
     timer.start();
     //////////////////////////////////////////////
     // cutGraphEdges(cut_graph, edges, vertexInds, obstacle.b.size(), optimal_solution);
-    cutGraphEdges(local_graph, edges, vertexInds, O.obstacles[0].b.size(), optimal_solution, MembershipMatrix);
+    // cutGraphEdges(local_graph, edges, uncertain_edges, uncertain_edge_indices, vertexInds, cut_indeces, O.obstacles[0].b.size(), optimal_solution, MembershipMatrix);
+
+    // Timer timer(PRINT_TIMING);
+    timer.start();
+    for (int i = 0; i < cut_indeces.size(); i++) {
+        remove_edge(vertexInds[cut_indeces[i]].first, vertexInds[cut_indeces[i]].second, local_graph);
+    }
+    // timer.time("              Cut the definite cut inds: ");
+    if (PRINT_TIMING) {
+        // std::cout << "              Size of cut edges: " << cut_indeces.size() << std::endl;
+        // std::cout << "              Size of uncertain edges: " << uncertain_edge_indices.size() << std::endl;
+    }
+
+    const int num_obstacle_faces =  O.obstacles[0].b.size();
+    int dec_var_ind = 0;
+    for (int i = 0; i < uncertain_edges.size(); i++) {
+        if (optimal_solution.segment(dec_var_ind + uncertain_edges[i].cols(),num_obstacle_faces).norm() < viol_tol)
+        {
+            remove_edge(vertexInds[uncertain_edge_indices[i]].first, vertexInds[uncertain_edge_indices[i]].second, local_graph);
+        }
+        dec_var_ind += uncertain_edges[i].cols() + num_obstacle_faces;
+    }
+    // timer.time("              Cut the uncertain cut inds: ");
+
     //////////////////////////////////////////////
     timer.time("    Cut graph edges: ");
 

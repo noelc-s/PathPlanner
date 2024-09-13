@@ -64,12 +64,16 @@ target_include_directories(cuda_kernel PUBLIC inc/)
 target_link_libraries(cuda_kernel Eigen3::Eigen)
 
 # add_executable(cuda src/main.cpp ${SOURCE_FILES})
-cuda_add_executable(cuda src/main.cpp ${CUDA_SOURCES} src/obstacle.cpp)
-target_link_libraries(cuda ${CUDA_LIBRARIES})
+# cuda_add_executable(cuda src/main.cpp ${CUDA_SOURCES} src/obstacle.cpp)
+# target_link_libraries(cuda ${CUDA_LIBRARIES})
 
-target_include_directories( cuda PUBLIC inc/)
-target_link_libraries(cuda Eigen3::Eigen)
+# target_include_directories( cuda PUBLIC inc/)
+# target_link_libraries(cuda Eigen3::Eigen)
 ###
+
+add_executable(test src/main.cpp src/utils.cpp src/obstacle.cpp)
+target_include_directories(test PUBLIC inc/)
+target_link_libraries(test Eigen3::Eigen yaml-cpp)
 
 find_package(yaml-cpp REQUIRED)
 

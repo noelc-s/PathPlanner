@@ -345,26 +345,30 @@ void cutGraphEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std:
     }
 }
 
-void cutGraphEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std::pair<int,int>> vertexInds, 
-                    const int num_obstacle_faces, VectorXd optimal_solution, Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> MembershipMatrix)
-{
-    int dec_var_ind = 0;
-    for (int i = 0; i < edges.size(); i++) {
-        if ((MembershipMatrix.row(i).array() == 1).any()) {
-            remove_edge(vertexInds[i].first, vertexInds[i].second, g);
-        } if ((MembershipMatrix.row(i).array() == 2).any()) {
-            for (int o = 0; o < MembershipMatrix.cols(); o++) {
-                if (MembershipMatrix(i, o) == 2) {
-                    if (optimal_solution.segment(dec_var_ind + edges[i].cols(),num_obstacle_faces).norm() < viol_tol)
-                    {
-                        remove_edge(vertexInds[i].first, vertexInds[i].second, g);
-                    }
-                    dec_var_ind += edges[i].cols() + num_obstacle_faces;
-                }
-            }
-        }
-    }
-}
+// void cutGraphEdges(Graph &g, const std::vector<matrix_t> &edges, const std::vector<matrix_t> &uncertain_edges, const std::vector<int> &uncertain_edge_indices, const std::vector<std::pair<int,int>> &vertexInds, 
+//                    const std::vector<int> &cut_indeces, const int num_obstacle_faces, const VectorXd &optimal_solution, const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &MembershipMatrix)
+// {
+//     Timer timer(PRINT_TIMING);
+//     timer.start();
+//     for (int i = 0; i < cut_indeces.size(); i++) {
+//         remove_edge(vertexInds[cut_indeces[i]].first, vertexInds[cut_indeces[i]].second, g);
+//     }
+//     timer.time("              Cut the definite cut inds: ");
+//     if (PRINT_TIMING) {
+//         std::cout << "              Size of cut edges: " << cut_indeces.size() << std::endl;
+//         std::cout << "              Size of uncertain edges: " << uncertain_edge_indices.size() << std::endl;
+//     }
+
+//     int dec_var_ind = 0;
+//     for (int i = 0; i < uncertain_edges.size(); i++) {
+//         if (optimal_solution.segment(dec_var_ind + uncertain_edges[i].cols(),num_obstacle_faces).norm() < viol_tol)
+//         {
+//             remove_edge(vertexInds[uncertain_edge_indices[i]].first, vertexInds[uncertain_edge_indices[i]].second, g);
+//         }
+//         dec_var_ind += uncertain_edges[i].cols() + num_obstacle_faces;
+//     }
+//     timer.time("              Cut the uncertain cut inds: ");
+// }
 
 void solveGraph(std::vector<vector_4t> points, vector_4t starting_loc, vector_4t ending_loc,
                 int &starting_ind, int& ending_ind, Graph g, std::vector<scalar_t> d, std::vector<Vertex>& p)

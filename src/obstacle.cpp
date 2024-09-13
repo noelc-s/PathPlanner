@@ -31,21 +31,13 @@ ObstacleCollector::ObstacleCollector() {
     scalar_t y_rand = dis_y(gen);
     obstacle.center << 0.5,0;
     // obstacle.center << x_rand, y_rand;
-    scalar_t obstacle_size = 0.16;
-    obstacle.b << obstacle_size + obstacle.center(0), obstacle_size - obstacle.center(0), obstacle_size + obstacle.center(1), obstacle_size - obstacle.center(1);
-    obstacle.v << obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1),
-        obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
-        -obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
-        -obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1);
-    obstacle.center << 0,0; // center should be difference in motion from IC
-    b_obs.push_back(obstacle.b);
-    obstacles.push_back(obstacle);
-    freq.push_back(dist_freq(gen));
+    scalar_t obstacle_size;
 
-    for (int i = 0; i < 10; i++){
+
+    for (int i = 0; i < 900; i++){
     x_rand = dis_x(gen);
     y_rand = dis_y(gen);
-    obstacle.center << x_rand + sgn(x_rand)*0.1, y_rand + sgn(y_rand)*0.1;
+    obstacle.center << x_rand + sgn(x_rand)*0.3, y_rand + sgn(y_rand)*0.3;
     // obstacle.center << -0.5, 0;
     obstacle_size = 0.1;
     obstacle.b << obstacle_size + obstacle.center(0), obstacle_size - obstacle.center(0), obstacle_size + obstacle.center(1), obstacle_size - obstacle.center(1);
@@ -58,6 +50,18 @@ ObstacleCollector::ObstacleCollector() {
     obstacles.push_back(obstacle);
     freq.push_back(dist_freq(gen));
     }
+
+    obstacle.center << 0.5,0;
+    obstacle_size = 0.05;
+    obstacle.b << obstacle_size + obstacle.center(0), obstacle_size - obstacle.center(0), obstacle_size + obstacle.center(1), obstacle_size - obstacle.center(1);
+    obstacle.v << obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1),
+        obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
+        -obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
+        -obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1);
+    obstacle.center << 0,0; // center should be difference in motion from IC
+    b_obs.push_back(obstacle.b);
+    obstacles.push_back(obstacle);
+    freq.push_back(dist_freq(gen));
 
 }
 

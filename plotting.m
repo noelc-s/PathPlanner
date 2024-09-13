@@ -66,14 +66,23 @@ if plot_edges
 
         Xi_x = B*[v([1 3],end); v([1 3],1)];
         Xi_y = B*[v([2 4],end); v([2 4],1)];
-        Bezier_x = reshape(Xi_x,2,[])*Z(tau)';
-        Bezier_y = reshape(Xi_y,2,[])*Z(tau)';
+        Bezier_x = reshape(Xi_x,2,[])*Z(tau);
+        Bezier_y = reshape(Xi_y,2,[])*Z(tau);
         % plot3(Bezier_x(1,:), Bezier_y(1,:),Bezier_x(2,:),'g')
         % plot3(Bezier_x(1,:), Bezier_y(1,:),Bezier_y(2,:),'r')
         % scatter3(v{i}(1,:),v{i}(2,:),v{i}(3,:),'g');
         % scatter3(v{i}(1,:),v{i}(2,:),v{i}(4,:),'r');
     end
 end
+
+for obs = 1:length(Obstacle_A)
+    nom = lcon2vert(Obstacle_A{obs}(:,1:2), Obstacle_b{obs});
+    inds = convhull(nom);
+    nom = nom(inds,:)';
+    Obstacle = [nom(1,:) + Obs{1}(obs,1); nom(2,:) + Obs{1}(obs,2)];
+    O_p(obs) = patch(Obstacle(1,:),Obstacle(2,:),'r','facealpha',0.1);
+end
+
 
 for j = 1:size(Path{1})
     i = Path{1}(j)+1;
@@ -106,15 +115,6 @@ axis square
 mpc_N = result.MPC.N;
 x_ind = 1:mpc_N*4;
 u_ind = (mpc_N*4+1):(mpc_N*4+(mpc_N-1)*2);
-
-for obs = 1:length(Obstacle_A)
-    nom = lcon2vert(Obstacle_A{obs}(:,1:2), Obstacle_b{obs});
-    inds = convhull(nom);
-    nom = nom(inds,:)';
-    Obstacle = [nom(1,:) + Obs{1}(obs,1); nom(2,:) + Obs{1}(obs,2)];
-    O_p(obs) = patch(Obstacle(1,:),Obstacle(2,:),'r','facealpha',0.1);
-end
-
 % while(1)
 for path_ind = 1:size(Path,2)
     tic
@@ -154,8 +154,8 @@ for path_ind = 1:size(Path,2)
     for i = 1:size(x,1)-1
         Xi_x = B*[x(i,[1 3])'; x(i+1,[1 3])'];
         Xi_y = B*[x(i,[2 4])'; x(i+1,[2 4])'];
-        Bezier_x = [Bezier_x reshape(Xi_x,2,[])*Z(tau)'];
-        Bezier_y = [Bezier_y reshape(Xi_y,2,[])*Z(tau)'];
+        Bezier_x = [Bezier_x reshape(Xi_x,2,[])*Z(tau)];
+        Bezier_y = [Bezier_y reshape(Xi_y,2,[])*Z(tau)];
     end
 
     mpc_plot(1) = plot(x(:,1),x(:,2),'bo','linewidth',5);

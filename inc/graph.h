@@ -67,8 +67,8 @@ std::ofstream open_log_file(std::string filename);
 Graph buildGraph(std::vector<vector_4t> points);
 void cutGraphEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std::pair<int,int>> vertexInds,
                 const int num_obstacle_faces, VectorXd optimal_solution);
-void cutGraphEdges(Graph &g, const std::vector<matrix_t> edges, std::vector<std::pair<int,int>> vertexInds, 
-                const int num_obstacle_faces, VectorXd optimal_solution, Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> membership);                
+// void cutGraphEdges(Graph &g, const std::vector<matrix_t> &edges, const std::vector<matrix_t> &uncertain_edges, const std::vector<int> &uncertain_edge_indices, const std::vector<std::pair<int,int>> &vertexInds, 
+//                    const std::vector<int> &cut_indeces, const int num_obstacle_faces, const VectorXd &optimal_solution, const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &MembershipMatrix);
 void solveGraph(std::vector<vector_4t> points, vector_4t starting_loc, vector_4t ending_loc,
     int &starting_ind, int& ending_ind, Graph g, std::vector<scalar_t> d, std::vector<Vertex>& p);
 std::vector<matrix_t> getBezEdges(const Graph graph, std::vector<std::pair<int,int>> &vertexInds);

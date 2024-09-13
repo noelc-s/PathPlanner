@@ -1,5 +1,6 @@
 
 #include "../inc/mpc.h"
+#include "../inc/kernel.hpp"
 
 // Constructor: Initialize the MPC parameters
 MPC::MPC(const int nx, const int nu, const MPC_Params loaded_p, const matrix_t &Bez)
@@ -253,38 +254,89 @@ void MPC::updateConstraintsSQP(ObstacleCollector O, vector_t sol, const vector_t
     vector_t f_ref(nvar_);
     f_ref.setZero();
     
-    for (int i = 0; i < mpc_params_.N; i++) {
+    Timer timer(PRINT_TIMING);
+    timer.start();
+
+    // GPU
+
+    vector_t A1(mpc_params_.N * O.obstacles.size());
+    vector_t A2(mpc_params_.N * O.obstacles.size());
+    vector_t b(mpc_params_.N * O.obstacles.size());
+    vector_t dist(mpc_params_.N * O.obstacles.size());
+
+    vector_t state_sol = sol.segment(0, nx_ * mpc_params_.N);
+
+    Kernel::MPC_GetActiveConstraints(O.obstacles, state_sol, A1, A2, b, dist);
+
+    Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>> A1Matrix(
+            A1.data(), mpc_params_.N, (int)O.obstacles.size());
+    Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>> A2Matrix(
+            A2.data(), mpc_params_.N, (int)O.obstacles.size());
+    Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>> bMatrix(
+            b.data(), mpc_params_.N, (int)O.obstacles.size());
+    Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>> distMatrix(
+            dist.data(), mpc_params_.N, (int)O.obstacles.size());
+
+    matrix_t A_closest_hyp(1, 4);
+    vector_t b_closest_hyp(1);
+
+    for (int i = 0; i < mpc_params_.N; ++i) {
         if (mpc_params_.use_previous_reference) {
             f_ref.segment(i*nx_,nx_) << sol.segment(i*nx_,nx_);
         } else {
             f_ref.segment(i*nx_,nx_) << xg;
         }
-        matrix_t A(1,4);
-        vector_t b(1);
-        A.setZero();
-        b << 1;
-        double max_viol = 1e3;
-        for (auto obstacle : O.obstacles) {
-            vector_t x(2);
-            x << sol.segment(nx_*i,2);
-            vector_t A_hyp(2);
-            double b_hyp;
-            A_hyp.setZero();
-            b_hyp = 0;
-            getSeparatingHyperplane(obstacle, x, A_hyp, b_hyp);
 
-            double v = (A_hyp.transpose() * x - b_hyp);
-            if (v < max_viol) {
-                A << A_hyp.transpose(),0,0;
-                b << b_hyp;
-                b += mpc_params_.buffer*vector_t::Ones(1);
-                max_viol = v;
-            }
-        }
-        A_constraint.push_back(A);
-        b_constraint.push_back(b);
+        // Get the index of the minimum element in the row
+        int minIndex;
+        distMatrix.row(i).minCoeff(&minIndex);
+        b_closest_hyp(0) = bMatrix(i, minIndex) + mpc_params_.buffer;
+        A_closest_hyp(0, 0) = A1Matrix(i, minIndex);
+        A_closest_hyp(0, 1) = A2Matrix(i, minIndex);
+        A_closest_hyp(0, 2) = 0;
+        A_closest_hyp(0, 3) = 0;
+
+        A_constraint.push_back(A_closest_hyp);
+        b_constraint.push_back(b_closest_hyp);
     }
+    
+    // CPU
+
+    // for (int i = 0; i < mpc_params_.N; i++) {
+    //     if (mpc_params_.use_previous_reference) {
+    //         f_ref.segment(i*nx_,nx_) << sol.segment(i*nx_,nx_);
+    //     } else {
+    //         f_ref.segment(i*nx_,nx_) << xg;
+    //     }
+    //     matrix_t A(1,4);
+    //     vector_t b(1);
+    //     A.setZero();
+    //     b << 1;
+    //     double max_viol = 1e3;
+    //     for (auto obstacle : O.obstacles) {
+    //         vector_t x(2);
+    //         x << sol.segment(nx_*i,2);
+    //         vector_t A_hyp(2);
+    //         double b_hyp;
+    //         A_hyp.setZero();
+    //         b_hyp = 0;
+    //         getSeparatingHyperplane(obstacle, x, A_hyp, b_hyp);
+
+    //         double v = (A_hyp.transpose() * x - b_hyp);
+    //         if (v < max_viol) {
+    //             A << A_hyp.transpose(),0,0;
+    //             b << b_hyp;
+    //             b += mpc_params_.buffer*vector_t::Ones(1);
+    //             max_viol = v;
+    //         }
+    //     }
+    //     A_constraint.push_back(A);
+    //     b_constraint.push_back(b);
+    // }
+
+    timer.time("           Get Separating Hyperplane: ");
     buildConstraintInequality(A_constraint, b_constraint);
+    timer.time("           Update the constraints of QP: ");
     f = -H_cost*f_ref;
 }
 
