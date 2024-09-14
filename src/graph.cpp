@@ -326,7 +326,7 @@ int GraphQP::solveQP(OsqpSolver &solver)
     OsqpExitCode exit_code = solver.Solve();
     if (exit_code != OsqpExitCode::kOptimal)
     {
-        std::cerr << "Solver did not find an optimal solution!" << std::endl;
+        // std::cerr << "Solver did not find an optimal solution!" << std::endl;
         return -1;
     }
     return 0;

@@ -33,8 +33,8 @@ int main()
     vector_t ending_loc;
     starting_loc.resize(4);
     ending_loc.resize(4);
-    starting_loc << 0,0 , 0, 0;
-    ending_loc << 1,0, 0, 0;
+    starting_loc <<-3.8, -3.8 , 0, 0;
+    ending_loc << 3.4 ,3.4, 0, 0;
 
     ObstacleCollector O = ObstacleCollector();
     logObstacles(O.obstacles, graph_file);
@@ -52,6 +52,8 @@ int main()
 
     std::condition_variable cv;
     std::mutex m;
+
+    std::cout << "Number of edges: " << planner.edges.size() << std::endl;
 
     // std::thread cutGraph(static_cast<void (PathPlanner::*)(ObstacleCollector&, std::ofstream&, std::condition_variable&, std::mutex&)>(&PathPlanner::cutGraph),
     //                     &planner, std::ref(O), std::ref(output_file), std::ref(cv), std::ref(m));

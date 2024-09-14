@@ -68,7 +68,7 @@ namespace Kernel
             }
         }
         if (num_constraint_violated == 0) {
-            printf("Constraint Violated . . . . . ");
+            // printf("Constraint Violated . . . . . ");
             A_hyp[0] = 0;
             A_hyp[1] = 0;
             b_hyp = 1;

@@ -59,6 +59,7 @@ void PathPlanner::initialize(const ObstacleCollector O)
 
     graphSettings.verbose = PRINT_TIMING;
     graphSettings.polish = false;
+    graphSettings.max_iter = 20;
 
     if (params_.use_random_grid) {
         points = generateUniformPoints(
@@ -247,6 +248,7 @@ void PathPlanner::cutGraph(ObstacleCollector &O, std::ofstream &output_file, std
     if (params_.log_edges)
     {
         logEdges(cut_graph, output_file, "Edges");
+        logEdges(graph, output_file, "NominalEdges");
     }
 }
 

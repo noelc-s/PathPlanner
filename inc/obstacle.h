@@ -1,6 +1,7 @@
 #pragma once
 #include "Types.h"
 #include <random>
+#include "maze.hpp"
 
 struct Obstacle
 {
