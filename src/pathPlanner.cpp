@@ -273,20 +273,20 @@ void PathPlanner::findPath(const std::vector<Obstacle> obstacles, vector_t start
     int starting_ind = -1;
     int ending_ind = -1;
 
-    bool ending_loc_in_obstacle = false;
-    for (auto obstacle : obstacles) {
-        obstacle.b += params_.buffer*vector_t::Ones(obstacle.b.size());
-        matrix_t coll = obstacle.A * ending_location - obstacle.b;
-        if ((coll.array() <= 0).all())
-            ending_loc_in_obstacle = true;
-    }
-    if (ending_loc_in_obstacle) {
-        ending_location = starting_location;
-        optimalPathFound = 0;
-        optimalInd.push_back(-1);
-        optimalPath.clear();
-        return;
-    }
+    // bool ending_loc_in_obstacle = false;
+    // for (auto obstacle : obstacles) {
+    //     obstacle.b += params_.buffer*vector_t::Ones(obstacle.b.size());
+    //     matrix_t coll = obstacle.A * ending_location - obstacle.b;
+    //     if ((coll.array() <= 0).all())
+    //         ending_loc_in_obstacle = true;
+    // }
+    // if (ending_loc_in_obstacle) {
+    //     ending_location = starting_location;
+    //     optimalPathFound = 0;
+    //     optimalInd.push_back(-1);
+    //     optimalPath.clear();
+    //     return;
+    // }
 
     solveGraph(points, starting_location, ending_location, starting_ind, ending_ind, local_graph, d, p);
 
