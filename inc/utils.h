@@ -46,14 +46,14 @@ struct MPC_Params
     int N;
     scalar_t dt;
     int SQP_iters;
-    vector_t stateScaling;
+    vector_t stateRefScaling;
+    vector_t stateGoalScaling;
+    vector_t path_length_cost;
+    vector_t terminalScaling;
     vector_t inputScaling;
-    scalar_t terminalScaling;
     scalar_t tau_max;
     scalar_t vel_max;
-    bool use_previous_reference;
     scalar_t buffer;
-    scalar_t path_length_cost;
 };
 
 void loadPlannerParams(std::string filename, Params &p, MPC_Params &mpc_p, Planner_Params &p_p);

@@ -23,8 +23,8 @@ ObstacleCollector::ObstacleCollector() {
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis_x(-2.5, 2.5);
-    std::uniform_real_distribution<> dis_y(-1.5, 1.5);
+    std::uniform_real_distribution<> dis_x(-5, 5);
+    std::uniform_real_distribution<> dis_y(-5, 5);
     std::uniform_real_distribution<> dist_freq(1, 3);
 
     scalar_t x_rand = dis_x(gen);

@@ -31,7 +31,8 @@ MPC::MPC(const int nx, const int nu, const MPC_Params loaded_p, const matrix_t &
 
     settings.verbose = PRINT_TIMING;
     settings.polish = true;
-    settings.max_iter = 200;
+    settings.warm_start = true;
+    settings.max_iter = 100;
 }
 
 void MPC::buildDynamicEquality() {
@@ -144,22 +145,27 @@ Eigen::MatrixXd createPathLengthMatrix(int n) {
 
 void MPC::buildCost()
 {
-    H_cost.resize(mpc_params_.N*nx_ + (mpc_params_.N-1) * nu_, mpc_params_.N*nx_ + (mpc_params_.N-1) * nu_);
-    H_cost.setZero();
+    H_ref_cost.resize(mpc_params_.N*nx_ + (mpc_params_.N-1) * nu_, mpc_params_.N*nx_ + (mpc_params_.N-1) * nu_);
+    H_goal_cost.resize(mpc_params_.N*nx_ + (mpc_params_.N-1) * nu_, mpc_params_.N*nx_ + (mpc_params_.N-1) * nu_);
+    H_ref_cost.setZero();
+    H_goal_cost.setZero();
     for (int i = 0; i < mpc_params_.N; i++) {
         for (int j = 0; j < nx_; j++) {
             if (i == mpc_params_.N-1) {
-                    H.insert(i*nx_+j,i*nx_+j) = mpc_params_.terminalScaling*mpc_params_.stateScaling(j);
-                    H_cost(i*nx_+j,i*nx_+j) = mpc_params_.terminalScaling*mpc_params_.stateScaling(j);
+                    H.insert(i*nx_+j,i*nx_+j) = mpc_params_.stateRefScaling(j) * mpc_params_.terminalScaling(j) + mpc_params_.stateGoalScaling(j) * mpc_params_.terminalScaling(j);
+                    H_ref_cost(i*nx_+j,i*nx_+j) = mpc_params_.stateRefScaling(j) * mpc_params_.terminalScaling(j);
+                    H_goal_cost(i*nx_+j,i*nx_+j) = mpc_params_.stateGoalScaling(j) * mpc_params_.terminalScaling(j);
             } else {
-                    H.insert(i*nx_+j,i*nx_+j) = mpc_params_.stateScaling(j);
-                    H_cost(i*nx_+j,i*nx_+j) = mpc_params_.stateScaling(j);
+                    H.insert(i*nx_+j,i*nx_+j) = mpc_params_.stateRefScaling(j) + mpc_params_.stateGoalScaling(j);
+                    H_ref_cost(i*nx_+j,i*nx_+j) = mpc_params_.stateRefScaling(j);
+                    H_goal_cost(i*nx_+j,i*nx_+j) = mpc_params_.stateGoalScaling(j);
             }
         }
         if (i < mpc_params_.N-1) {
             for (int j = 0; j < nu_; j++) {
                 H.insert(mpc_params_.N*nx_+i*nu_+j,mpc_params_.N*nx_+i*nu_+j) = mpc_params_.inputScaling(j);
-                H_cost(mpc_params_.N*nx_+i*nu_+j,mpc_params_.N*nx_+i*nu_+j) = mpc_params_.inputScaling(j);
+                H_ref_cost(mpc_params_.N*nx_+i*nu_+j,mpc_params_.N*nx_+i*nu_+j) = 0;
+                H_goal_cost(mpc_params_.N*nx_+i*nu_+j,mpc_params_.N*nx_+i*nu_+j) = 0;
             }
         }
     }
@@ -167,12 +173,12 @@ void MPC::buildCost()
     matrix_t pathLengthCost = createPathLengthMatrix(mpc_params_.N);
     for (int i = 0; i < mpc_params_.N; i++) {
         for (int j = 0; j < nx_; j++) {
-            H.coeffRef(i*nx_+j,i*nx_+j) += pathLengthCost(i,i) * mpc_params_.stateScaling(j) * mpc_params_.path_length_cost;
+            H.coeffRef(i*nx_+j,i*nx_+j) += pathLengthCost(i,i) * mpc_params_.path_length_cost(j);
             if (i > 0) {
-                H.insert(i*nx_+j,(i-1)*nx_+j) = pathLengthCost(i,(i-1)) * mpc_params_.stateScaling(j) * mpc_params_.path_length_cost;
+                H.insert(i*nx_+j,(i-1)*nx_+j) = pathLengthCost(i,(i-1)) * mpc_params_.path_length_cost(j);
             }
             if (i < mpc_params_.N - 1) {
-                H.insert(i*nx_+j,(i+1)*nx_+j) = pathLengthCost(i,(i+1)) * mpc_params_.stateScaling(j) * mpc_params_.path_length_cost;
+                H.insert(i*nx_+j,(i+1)*nx_+j) = pathLengthCost(i,(i+1)) * mpc_params_.path_length_cost(j);
             }
         }
     }
@@ -251,8 +257,6 @@ void MPC::updateConstraints(const vector_t& x0)
 void MPC::updateConstraintsSQP(ObstacleCollector O, vector_t sol, const vector_t& xg) {
     std::vector<matrix_t> A_constraint;
     std::vector<vector_t> b_constraint;
-    vector_t f_ref(nvar_);
-    f_ref.setZero();
     
     Timer timer(PRINT_TIMING);
     timer.start();
@@ -281,16 +285,14 @@ void MPC::updateConstraintsSQP(ObstacleCollector O, vector_t sol, const vector_t
     vector_t b_closest_hyp(1);
 
     for (int i = 0; i < mpc_params_.N; ++i) {
-        if (mpc_params_.use_previous_reference) {
-            f_ref.segment(i*nx_,nx_) << sol.segment(i*nx_,nx_);
-        } else {
-            f_ref.segment(i*nx_,nx_) << xg;
-        }
 
         // Get the index of the minimum element in the row
         int minIndex;
-        distMatrix.row(i).minCoeff(&minIndex);
-        b_closest_hyp(0) = bMatrix(i, minIndex) + mpc_params_.buffer;
+        scalar_t distance = distMatrix.row(i).minCoeff(&minIndex);
+        // if (i == 0)
+        //     b_closest_hyp(0) = bMatrix(i, minIndex) + std::min(mpc_params_.buffer, distance);
+        // else
+        b_closest_hyp(0) = bMatrix(i, minIndex);
         A_closest_hyp(0, 0) = A1Matrix(i, minIndex);
         A_closest_hyp(0, 1) = A2Matrix(i, minIndex);
         A_closest_hyp(0, 2) = 0;
@@ -300,6 +302,7 @@ void MPC::updateConstraintsSQP(ObstacleCollector O, vector_t sol, const vector_t
         b_constraint.push_back(b_closest_hyp);
     }
     
+    // CHECKED -- CPU and GPU agree
     // CPU
 
     // for (int i = 0; i < mpc_params_.N; i++) {
@@ -337,7 +340,6 @@ void MPC::updateConstraintsSQP(ObstacleCollector O, vector_t sol, const vector_t
     timer.time("           Get Separating Hyperplane: ");
     buildConstraintInequality(A_constraint, b_constraint);
     timer.time("           Update the constraints of QP: ");
-    f = -H_cost*f_ref;
 }
 
 void MPC::updateCost()
@@ -350,6 +352,17 @@ vector_t MPC::solve(ObstacleCollector O, vector_t sol, const vector_t& x0, const
     Timer timer(PRINT_TIMING);
     timer.start();
     vector_t mpc_sol = sol;
+
+    vector_t f_ref(nvar_);
+    vector_t f_goal(nvar_);
+    f_ref.setZero();
+    f_goal.setZero();
+    for (int i = 0; i < mpc_params_.N; ++i) {
+        f_ref.segment(i*nx_,nx_) << sol.segment(i*nx_,nx_);
+        f_goal.segment(i*nx_,nx_) << xg;
+    }
+    f = -H_ref_cost * f_ref - H_goal_cost * f_goal;
+
     for (int i = 0; i < mpc_params_.SQP_iters; i++) {
         updateConstraintsSQP(O, mpc_sol, xg);
         timer.time("        Update Constraints: ");

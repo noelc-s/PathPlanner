@@ -28,7 +28,7 @@ PathPlanner::PathPlanner(int state_size, int input_size, const MPC_Params mpc_pa
         0, -1;
     B_p.b_x.resize(4);
     // TODO: change this when the state space changes
-    B_p.b_x << 3, 3, 3, 3;
+    B_p.b_x << -params_.x_bounds(0),  params_.x_bounds(1),  -params_.x_bounds(2),  params_.x_bounds(3);
     B_p.H = B->H_matrix(order);
     B_p.Q.push_back(matrix_t::Identity(4, 4));
     B_p.K.resize(2);
@@ -144,6 +144,14 @@ void PathPlanner::cutGraph(ObstacleCollector &O, std::condition_variable &cv, st
     for (auto &obstacle : O_buffered.obstacles)
     {
         obstacle.b += params_.buffer*ones;
+        for (int r = 0; r < obstacle.v.rows(); r++) {
+            auto faces = obstacle.Adjacency.row(r);
+            for (int i = 0; i < faces.size(); i++) {
+                if (faces[i] == 1) {
+                    obstacle.v.row(r) += params_.buffer * obstacle.A.block(i, 0, 1, 2);
+                }
+            }
+        }
     }
     timer.time("    Buffer osbtacle: ");
     Kernel::GraphQP_ObstacleMembershipHeuristic(O_buffered.obstacles, edges, Membership);
@@ -158,17 +166,27 @@ void PathPlanner::cutGraph(ObstacleCollector &O, std::condition_variable &cv, st
     std::vector<int> cut_indeces;
     bool any_uncertain_edges = false;
     for (size_t e = 0; e < edges.size(); ++e) {
+        std::vector<matrix_t> uncertain_edges_tmp;
+        std::vector<int> uncertain_obst_indices_tmp;
+        std::vector<int> uncertain_edge_indices_tmp;
+        bool any_cut = false;
         for (size_t o = 0; o < O.obstacles.size(); ++o) {
             if (MembershipMatrix(e, o) == 1) {
                 cut_indeces.push_back(e);
+                any_cut = true;
                 break;
             }
             if (MembershipMatrix(e, o) == 2) {
-                any_uncertain_edges = true;
-                uncertain_edges.push_back(edges[e]);
-                uncertain_obst_indices.push_back(o);
-                uncertain_edge_indices.push_back(e);
+                uncertain_edges_tmp.push_back(edges[e]);
+                uncertain_obst_indices_tmp.push_back(o);
+                uncertain_edge_indices_tmp.push_back(e);
             }
+        }
+        if (!any_cut & uncertain_edges_tmp.size() > 0) {
+            any_uncertain_edges = true;
+            uncertain_edges.insert(uncertain_edges.end(), uncertain_edges_tmp.begin(), uncertain_edges_tmp.end());
+            uncertain_obst_indices.insert(uncertain_obst_indices.end(), uncertain_obst_indices_tmp.begin(), uncertain_obst_indices_tmp.end());
+            uncertain_edge_indices.insert(uncertain_edge_indices.end(), uncertain_edge_indices_tmp.begin(), uncertain_edge_indices_tmp.end());
         }
     }
     VectorXd optimal_solution;
@@ -279,10 +297,16 @@ void PathPlanner::findPath(const std::vector<Obstacle> obstacles, vector_t start
     }
 
     if (p[vertex(ending_ind, local_graph)] > num_vertices(local_graph)) {
-        ending_location = points[ending_ind];
-        optimalPathFound = 0;
-        optimalInd.push_back(-1);
-        optimalPath.clear();
+        if (starting_ind != ending_ind) {
+            ending_location = points[ending_ind];
+            optimalPathFound = 0;
+            optimalInd.push_back(-1);
+            optimalPath.clear();
+        } else {
+            optimalPathFound = 1;
+            optimalInd.push_back(ending_ind);
+            optimalPath.push_back(ending_location);
+        }
         return;
     }
 
@@ -354,10 +378,10 @@ void PathPlanner::refineWithMPC(vector_t &graph_sol, vector_t &sol, ObstacleColl
             sol.segment(i*mpc_->nx_,mpc_->nx_) << B->b(bez_t, controlPoints).transpose();
         }
         vector_t xg = x1;
-        for (int i = 0; i < std::min((size_t)mpc_->mpc_params_.N, optimalPath.size()); i++) {
+        for (int i = 0; i < std::min((int)graph_sol.size() / mpc_->nx_, (int) optimalPath.size()); i++) {
             graph_sol.segment(i*mpc_->nx_,mpc_->nx_) = optimalPath[(int)optimalPath.size()-1-i];
         }
-        for (int i = optimalPath.size(); i < mpc_->mpc_params_.N; i++) {
+        for (int i = optimalPath.size(); i < ((int)graph_sol.size() / mpc_->nx_); i++) {
             if (optimalPathFound) {
                 graph_sol.segment(i*mpc_->nx_,mpc_->nx_) = optimalPath[0];
             } else {
@@ -365,18 +389,37 @@ void PathPlanner::refineWithMPC(vector_t &graph_sol, vector_t &sol, ObstacleColl
             }
         }
         // graph_sol = sol;
+
+
+        ObstacleCollector O_buffered = O;
+        // TODO: assumes that all obstacles are the same complexity (num faces)!
+        static const vector_t ones = vector_t::Ones(O_buffered.obstacles[0].b.size());
+        for (auto &obstacle : O_buffered.obstacles)
+        {
+            obstacle.b += params_.buffer*ones;
+            for (int r = 0; r < obstacle.v.rows(); r++) {
+                auto faces = obstacle.Adjacency.row(r);
+                for (int i = 0; i < faces.size(); i++) {
+                    if (faces[i] == 1) {
+                        obstacle.v.row(r) += params_.buffer * obstacle.A.block(i, 0, 1, 2);
+                    }
+                }
+            }
+        }
+
     
-        mpc_->updateConstraintsSQP(O, sol, xg);
         if (!mpc_->isInitialized) {
-           mpc_->initialize();
+            mpc_->updateConstraintsSQP(O_buffered, sol, xg);
+            mpc_->initialize();
         }
 
         timer.time("    Build Graph from Optimal Solve: ");
-        mpc_->updateConstraints(starting_loc);
-        timer.time("    Update Constraints: ");
-        mpc_->updateCost();
-        timer.time("    Update Cost: ");
+        // This is already done in the loop
+        // mpc_->updateConstraints(starting_loc);
+        // timer.time("    Update Constraints: ");
+        // mpc_->updateCost();
+        // timer.time("    Update Cost: ");
 
-        sol = mpc_->solve(O, sol, starting_loc, xg);
+        sol = mpc_->solve(O_buffered, sol, starting_loc, xg);
         timer.time("    Solve: ");
 }

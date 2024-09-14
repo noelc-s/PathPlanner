@@ -9,7 +9,7 @@
 #include <fstream>
 
 const scalar_t distance_tol = 0.5;
-const scalar_t viol_tol = 0.05;
+const scalar_t viol_tol = 0.1;
 
 using namespace osqp;
 using namespace boost;

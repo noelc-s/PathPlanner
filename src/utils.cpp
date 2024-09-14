@@ -29,20 +29,29 @@ void loadPlannerParams(std::string filename, Params &p, MPC_Params &mpc_p, Plann
     mpc_p.N = config["MPC"]["N"].as<int>();
     mpc_p.dt = config["MPC"]["dt"].as<scalar_t>();
     mpc_p.SQP_iters = config["MPC"]["SQP_iters"].as<int>();
-    mpc_p.terminalScaling = config["MPC"]["terminalScaling"].as<scalar_t>();
     mpc_p.tau_max = config["MPC"]["tau_max"].as<scalar_t>();
     mpc_p.vel_max = config["MPC"]["vel_max"].as<scalar_t>();
-    mpc_p.use_previous_reference = config["MPC"]["use_previous_reference"].as<bool>();
-    mpc_p.stateScaling.resize(4);
+    mpc_p.stateRefScaling.resize(4);
+    mpc_p.stateGoalScaling.resize(4);
+    mpc_p.path_length_cost.resize(4);
+    mpc_p.terminalScaling.resize(4);
     mpc_p.inputScaling.resize(2);
-    auto tmp = config["MPC"]["stateScaling"].as<std::vector<scalar_t>>();
-    for (int i = 0; i < mpc_p.stateScaling.size(); i++)
-        mpc_p.stateScaling(i) = tmp[i];
+    auto tmp = config["MPC"]["stateRefScaling"].as<std::vector<scalar_t>>();
+    for (int i = 0; i < mpc_p.stateRefScaling.size(); i++)
+        mpc_p.stateRefScaling(i) = tmp[i];
+    tmp = config["MPC"]["stateGoalScaling"].as<std::vector<scalar_t>>();
+    for (int i = 0; i < mpc_p.stateGoalScaling.size(); i++)
+        mpc_p.stateGoalScaling(i) = tmp[i];
+    tmp = config["MPC"]["path_length_cost"].as<std::vector<scalar_t>>();
+    for (int i = 0; i < mpc_p.path_length_cost.size(); i++)
+        mpc_p.path_length_cost(i) = tmp[i];
+    tmp = config["MPC"]["terminalScaling"].as<std::vector<scalar_t>>();
+    for (int i = 0; i < mpc_p.terminalScaling.size(); i++)
+        mpc_p.terminalScaling(i) = tmp[i];
     tmp = config["MPC"]["inputScaling"].as<std::vector<scalar_t>>();
     for (int i = 0; i < mpc_p.inputScaling.size(); i++)
         mpc_p.inputScaling(i) = tmp[i];
     mpc_p.buffer = config["Planner"]["buffer"].as<scalar_t>();
-    mpc_p.path_length_cost = config["MPC"]["path_length_cost"].as<scalar_t>();
 
     p_p.x_bounds.resize(4);
     p_p.dx_bounds.resize(4);

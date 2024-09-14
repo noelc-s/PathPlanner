@@ -41,7 +41,7 @@ private:
     matrix_t constraint_A;
     Eigen::VectorXd dynamics_b_lb, dynamics_b_ub, constraint_b;
     SparseMatrix<double> H;
-    matrix_t H_cost;
+    matrix_t H_ref_cost, H_goal_cost;
     Eigen::VectorXd f, full_ref;
 
     OsqpSolver solver;
