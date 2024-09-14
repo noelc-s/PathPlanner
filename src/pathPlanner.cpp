@@ -158,7 +158,7 @@ void PathPlanner::cutGraph(ObstacleCollector &O, std::condition_variable &cv, st
     Kernel::GraphQP_ObstacleMembershipHeuristic(O_buffered.obstacles, edges, Membership);
     timer.time("    Heuristic check: ");
     Eigen::Map<Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic>> MembershipMatrix(
-                        Membership.data(), edges.size(), O.obstacles.size());
+                        Membership.data(), edges.size(), O_buffered.obstacles.size());
     timer.time("    Heuristic map to matrix: ");
 
     std::vector<matrix_t> uncertain_edges;
@@ -166,12 +166,12 @@ void PathPlanner::cutGraph(ObstacleCollector &O, std::condition_variable &cv, st
     std::vector<int> uncertain_edge_indices;
     std::vector<int> cut_indeces;
     bool any_uncertain_edges = false;
-    for (size_t e = 0; e < edges.size(); ++e) {
+    for (size_t e = 0; e < MembershipMatrix.rows(); ++e) {
         std::vector<matrix_t> uncertain_edges_tmp;
         std::vector<int> uncertain_obst_indices_tmp;
         std::vector<int> uncertain_edge_indices_tmp;
         bool any_cut = false;
-        for (size_t o = 0; o < O.obstacles.size(); ++o) {
+        for (size_t o = 0; o < MembershipMatrix.cols(); ++o) {
             if (MembershipMatrix(e, o) == 1) {
                 cut_indeces.push_back(e);
                 any_cut = true;
@@ -252,10 +252,13 @@ void PathPlanner::cutGraph(ObstacleCollector &O, std::ofstream &output_file, std
     }
 }
 
-void PathPlanner::cutGraphLoop(ObstacleCollector &O, std::ofstream &output_file, std::condition_variable &cv, std::mutex &m)
+void PathPlanner::cutGraphLoop(ObstacleCollector &O, std::ofstream &output_file, double &timing, std::condition_variable &cv, std::mutex &m)
 {
+    Timer timer(false);
     while(1) {
+        timer.start();
         cutGraph(O, output_file, cv, m);
+        timing = timer.time();
     }
 }
 

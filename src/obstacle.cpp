@@ -17,72 +17,72 @@ ObstacleCollector::ObstacleCollector() {
         0, -1, 0, 0;
     obstacle.Adjacency.resize(num_obstacle_faces, num_obstacle_faces);
 
-    obstacle.Adjacency << 0, 1, 0, 1,
-        0, 1, 1, 0,
-        1, 0, 1, 0,
-        1, 0, 0, 1;
-    int rows = 20;                // Number of rows
-    int cols = 20;                // Number of columns
-    double cellWidth = 0.4;       // Width of each cell in meters
-    double cellHeight = 0.4;      // Height of each cell in meters
-    double wallThickness = 0.05;   // Thickness of walls in meters
-    double density = 0.5;         // Proportion of walls that are active
-    Maze maze(rows, cols, cellWidth, cellHeight, wallThickness);
-    auto vertices = maze.computeWallVertices();
-    for (int i = 0; i < vertices.size(); i++) {
-        obstacle.v = vertices[i];
-        obstacle.v.col(0) += -4*vector_t::Ones(4);
-        obstacle.v.col(1) += -4*vector_t::Ones(4);
-        obstacle.b << obstacle.v(3, 0), -obstacle.v(0, 0), obstacle.v(1, 1), -obstacle.v(0, 1);
-        obstacle.center << 0,0;
-        obstacles.push_back(obstacle);
-    }
-
-    // obstacle.Adjacency << 1, 0, 1, 0,
-    //     1, 0, 0, 1,
-    //     0, 1, 0, 1,
-    //     0, 1, 1, 0;
-    // std::random_device rd;
-    // std::mt19937 gen(rd());
-    // std::uniform_real_distribution<> dis_x(-2, 2);
-    // std::uniform_real_distribution<> dis_y(-2, 2);
-    // std::uniform_real_distribution<> dist_freq(1, 3);
-
-    // scalar_t x_rand = dis_x(gen);
-    // scalar_t y_rand = dis_y(gen);
-    // obstacle.center << 0.5,0;
-    // // obstacle.center << x_rand, y_rand;
-    // scalar_t obstacle_size;
-
-
-    // for (int i = 0; i < 9; i++){
-    // x_rand = dis_x(gen);
-    // y_rand = dis_y(gen);
-    // obstacle.center << x_rand + sgn(x_rand)*0.3, y_rand + sgn(y_rand)*0.3;
-    // // obstacle.center << -0.5, 0;
-    // obstacle_size = 0.1;
-    // obstacle.b << obstacle_size + obstacle.center(0), obstacle_size - obstacle.center(0), obstacle_size + obstacle.center(1), obstacle_size - obstacle.center(1);
-    // obstacle.v << obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1),
-    //     obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
-    //     -obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
-    //     -obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1);
-    // obstacle.center << 0,0; // center should be difference in motion from IC
-    // b_obs.push_back(obstacle.b);
-    // obstacles.push_back(obstacle);
-    // freq.push_back(dist_freq(gen));
+    // obstacle.Adjacency << 0, 1, 0, 1,
+    //     0, 1, 1, 0,
+    //     1, 0, 1, 0,
+    //     1, 0, 0, 1;
+    // int rows = 20;                // Number of rows
+    // int cols = 20;                // Number of columns
+    // double cellWidth = 0.4;       // Width of each cell in meters
+    // double cellHeight = 0.4;      // Height of each cell in meters
+    // double wallThickness = 0.05;   // Thickness of walls in meters
+    // double density = 0.5;         // Proportion of walls that are active
+    // Maze maze(rows, cols, cellWidth, cellHeight, wallThickness);
+    // auto vertices = maze.computeWallVertices();
+    // for (int i = 0; i < vertices.size(); i++) {
+    //     obstacle.v = vertices[i];
+    //     obstacle.v.col(0) += -4*vector_t::Ones(4);
+    //     obstacle.v.col(1) += -4*vector_t::Ones(4);
+    //     obstacle.b << obstacle.v(3, 0), -obstacle.v(0, 0), obstacle.v(1, 1), -obstacle.v(0, 1);
+    //     obstacle.center << 0,0;
+    //     obstacles.push_back(obstacle);
     // }
 
-    // obstacle.center << 0.5,0;
-    // obstacle_size = 0.1;
-    // obstacle.b << obstacle_size + obstacle.center(0), obstacle_size - obstacle.center(0), obstacle_size + obstacle.center(1), obstacle_size - obstacle.center(1);
-    // obstacle.v << obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1),
-    //     obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
-    //     -obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
-    //     -obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1);
-    // obstacle.center << 0,0; // center should be difference in motion from IC
-    // b_obs.push_back(obstacle.b);
-    // obstacles.push_back(obstacle);
-    // freq.push_back(dist_freq(gen));
+    obstacle.Adjacency << 1, 0, 1, 0,
+        1, 0, 0, 1,
+        0, 1, 0, 1,
+        0, 1, 1, 0;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis_x(-2, 2);
+    std::uniform_real_distribution<> dis_y(-2, 2);
+    std::uniform_real_distribution<> dist_freq(1, 3);
+
+    scalar_t x_rand = dis_x(gen);
+    scalar_t y_rand = dis_y(gen);
+    obstacle.center << 0.5,0;
+    // obstacle.center << x_rand, y_rand;
+    scalar_t obstacle_size;
+
+
+    for (int i = 0; i < 19; i++){
+    x_rand = dis_x(gen);
+    y_rand = dis_y(gen);
+    obstacle.center << x_rand + sgn(x_rand)*0.3, y_rand + sgn(y_rand)*0.3;
+    // obstacle.center << -0.5, 0;
+    obstacle_size = 0.1;
+    obstacle.b << obstacle_size + obstacle.center(0), obstacle_size - obstacle.center(0), obstacle_size + obstacle.center(1), obstacle_size - obstacle.center(1);
+    obstacle.v << obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1),
+        obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
+        -obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
+        -obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1);
+    obstacle.center << 0,0; // center should be difference in motion from IC
+    b_obs.push_back(obstacle.b);
+    obstacles.push_back(obstacle);
+    freq.push_back(dist_freq(gen));
+    }
+
+    obstacle.center << 0.5,0;
+    obstacle_size = 0.1;
+    obstacle.b << obstacle_size + obstacle.center(0), obstacle_size - obstacle.center(0), obstacle_size + obstacle.center(1), obstacle_size - obstacle.center(1);
+    obstacle.v << obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1),
+        obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
+        -obstacle_size + obstacle.center(0), -obstacle_size + obstacle.center(1),
+        -obstacle_size + obstacle.center(0), obstacle_size + obstacle.center(1);
+    obstacle.center << 0,0; // center should be difference in motion from IC
+    b_obs.push_back(obstacle.b);
+    obstacles.push_back(obstacle);
+    freq.push_back(dist_freq(gen));
 
 }
 

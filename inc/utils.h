@@ -34,6 +34,7 @@ struct Planner_Params
     scalar_t bez_dt;
     bool use_zed;
     bool use_random_grid;
+    int max_graph_sol_length;
 };
 
 struct Params
