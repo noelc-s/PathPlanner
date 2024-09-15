@@ -35,6 +35,7 @@ struct Planner_Params
     bool use_zed;
     bool use_random_grid;
     int max_graph_sol_length;
+    int max_num_obstacles;
 };
 
 struct Params

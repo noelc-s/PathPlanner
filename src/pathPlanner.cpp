@@ -117,13 +117,24 @@ std::vector<vector_4t> generateGridPoints(int n, scalar_t min_x, scalar_t max_x,
     std::vector<vector_4t> points;
     scalar_t sqrt_val = pow(n, 0.5);
     int floor_sqrt_val = (int) sqrt_val;
-    points.reserve(pow(floor_sqrt_val, 2));
 
-    for (int i = 0; i < pow(floor_sqrt_val, 2); ++i)
+    scalar_t x_bound = max_x - min_x;
+    scalar_t y_bound = max_y - min_y;
+    scalar_t ratio = x_bound / y_bound;
+
+    points.reserve(n);
+
+    scalar_t x_samples = ratio * pow(n / ratio, 0.5);
+    scalar_t y_samples = pow(n / ratio, 0.5);
+
+    for (int i = 0; i < x_samples; ++i)
     {
+        for (int j = 0; j < y_samples; ++j)
+        {
         vector_4t point;
-        point << i%floor_sqrt_val * (max_x - min_x) / floor_sqrt_val + min_x, i/floor_sqrt_val * (max_y - min_y) / floor_sqrt_val + min_y, 0, 0;
+        point << i * (max_x - min_x) / x_samples + min_x, j * (max_y - min_y) / y_samples + min_y, 0, 0;
         points.push_back(point);
+        }
     }
 
     return points;
@@ -276,23 +287,9 @@ void PathPlanner::findPath(const std::vector<Obstacle> obstacles, vector_t start
     int starting_ind = -1;
     int ending_ind = -1;
 
-    // bool ending_loc_in_obstacle = false;
-    // for (auto obstacle : obstacles) {
-    //     obstacle.b += params_.buffer*vector_t::Ones(obstacle.b.size());
-    //     matrix_t coll = obstacle.A * ending_location - obstacle.b;
-    //     if ((coll.array() <= 0).all())
-    //         ending_loc_in_obstacle = true;
-    // }
-    // if (ending_loc_in_obstacle) {
-    //     ending_location = starting_location;
-    //     optimalPathFound = 0;
-    //     optimalInd.push_back(-1);
-    //     optimalPath.clear();
-    //     return;
-    // }
-
     solveGraph(points, starting_location, ending_location, starting_ind, ending_ind, local_graph, d, p);
 
+    // if no point was found
     if (starting_ind == -1 || ending_ind == -1) {
         ending_location = starting_location;
         optimalPathFound = 0;
@@ -301,16 +298,31 @@ void PathPlanner::findPath(const std::vector<Obstacle> obstacles, vector_t start
         return;
     }
 
+    // if the solve is empty
     if (p[vertex(ending_ind, local_graph)] > num_vertices(local_graph)) {
+        // empty solve and the start and end are different
         if (starting_ind != ending_ind) {
             ending_location = points[ending_ind];
             optimalPathFound = 0;
             optimalInd.push_back(-1);
             optimalPath.clear();
         } else {
+            // empty solve, but the start and end of the graph are the same
+
+            bool ending_loc_in_obstacle = false;
+            for (auto obstacle : obstacles) {
+                obstacle.b += params_.buffer*vector_t::Ones(obstacle.b.size());
+                matrix_t coll = obstacle.A * ending_location - obstacle.b;
+                if ((coll.array() <= 0).all())
+                    ending_loc_in_obstacle = true;
+            }
             optimalPathFound = 1;
             optimalInd.push_back(ending_ind);
-            optimalPath.push_back(ending_location);
+            if (ending_loc_in_obstacle) {
+                optimalPath.push_back(points[ending_ind]);
+            } else {
+                optimalPath.push_back(ending_location);
+            }
         }
         return;
     }
@@ -334,11 +346,22 @@ void PathPlanner::refineWithMPC(vector_t &graph_sol, vector_t &sol, ObstacleColl
 
         int index = 0;
 
+
+        bool ending_loc_in_obstacle = false;
+        for (auto obstacle : O.obstacles) {
+            obstacle.b += params_.buffer*vector_t::Ones(obstacle.b.size());
+            matrix_t coll = obstacle.A * ending_loc - obstacle.b;
+            if ((coll.array() <= 0).all())
+                ending_loc_in_obstacle = true;
+        }
+        if (optimalPathFound & ending_loc_in_obstacle) {
+            ending_loc = optimalPath[0];
+        }
+
         vector_t x0, x1;
         if (index < (int)optimalPath.size()-1) {
             x0 = optimalPath[(int)optimalPath.size()-1-index];
             x1 = optimalPath[(int)optimalPath.size()-1-(index+1)];
-
         } else {
             if (optimalPathFound) {
                 x0 = ending_loc;

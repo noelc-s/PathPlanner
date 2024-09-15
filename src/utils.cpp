@@ -69,7 +69,7 @@ void loadPlannerParams(std::string filename, Params &p, MPC_Params &mpc_p, Plann
     p_p.use_zed = config["Planner"]["use_zed"].as<bool>();
     p_p.use_random_grid = config["Planner"]["use_random_grid"].as<bool>();
     p_p.max_graph_sol_length = config["Planner"]["max_graph_sol_length"].as<int>();
-
+    p_p.max_num_obstacles = config["Planner"]["max_num_obstacles"].as<int>();
 }
 
 void log(matrix_t data, std::ofstream& file, std::string name)
