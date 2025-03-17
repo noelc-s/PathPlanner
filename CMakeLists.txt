@@ -71,9 +71,9 @@ target_link_libraries(cuda_kernel Eigen3::Eigen)
 # target_link_libraries(cuda Eigen3::Eigen)
 ###
 
-add_executable(test src/main.cpp src/utils.cpp src/obstacle.cpp)
-target_include_directories(test PUBLIC inc/)
-target_link_libraries(test Eigen3::Eigen yaml-cpp)
+add_executable(test_path src/main.cpp src/utils.cpp src/obstacle.cpp)
+target_include_directories(test_path PUBLIC inc/)
+target_link_libraries(test_path Eigen3::Eigen yaml-cpp)
 
 find_package(yaml-cpp REQUIRED)
 
