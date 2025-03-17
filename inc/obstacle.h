@@ -3,6 +3,8 @@
 #include <random>
 #include "maze.hpp"
 
+enum OCC {FREE, OBST};
+
 struct Obstacle
 {
     matrix_t A;
@@ -10,6 +12,7 @@ struct Obstacle
     vector_t center;
     matrix_t v; // vertex representation
     matrix_t Adjacency; // points to faces (1 at (i,j) if point i touches face j)
+    OCC occType;
 };
 
 class ObstacleCollector {

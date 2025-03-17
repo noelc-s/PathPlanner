@@ -183,15 +183,26 @@ void PathPlanner::cutGraph(ObstacleCollector &O, std::condition_variable &cv, st
         std::vector<int> uncertain_edge_indices_tmp;
         bool any_cut = false;
         for (size_t o = 0; o < MembershipMatrix.cols(); ++o) {
-            if (MembershipMatrix(e, o) == 1) {
-                cut_indeces.push_back(e);
-                any_cut = true;
-                break;
-            }
-            if (MembershipMatrix(e, o) == 2) {
-                uncertain_edges_tmp.push_back(edges[e]);
-                uncertain_obst_indices_tmp.push_back(o);
-                uncertain_edge_indices_tmp.push_back(e);
+            if (O.obstacles[o].occType == OBST) {
+                if (MembershipMatrix(e, o) == 1) {
+                    cut_indeces.push_back(e);
+                    any_cut = true;
+                    break;
+                }
+                if (MembershipMatrix(e, o) == 2) {
+                    uncertain_edges_tmp.push_back(edges[e]);
+                    uncertain_obst_indices_tmp.push_back(o);
+                    uncertain_edge_indices_tmp.push_back(e);
+                }
+            } else if (O.obstacles[o].occType == FREE) {
+                if (MembershipMatrix(e, o) == 0 || MembershipMatrix(e, o) == 2) {
+                    cut_indeces.push_back(e);
+                    any_cut = true;
+                    break;
+                }
+            } else {
+                std::cout << "Obstacle membership logic not implemented yet" << std::endl;
+                exit(2);
             }
         }
         if (!any_cut & uncertain_edges_tmp.size() > 0) {
@@ -313,8 +324,13 @@ void PathPlanner::findPath(const std::vector<Obstacle> obstacles, vector_t start
             for (auto obstacle : obstacles) {
                 obstacle.b += params_.buffer*vector_t::Ones(obstacle.b.size());
                 matrix_t coll = obstacle.A * ending_location - obstacle.b;
-                if ((coll.array() <= 0).all())
-                    ending_loc_in_obstacle = true;
+                if (obstacle.occType == OBST) {
+                    if ((coll.array() <= 0).all())
+                        ending_loc_in_obstacle = true;
+                } else if (obstacle.occType == FREE) {
+                    if (!(coll.array() <= 0).all())
+                        ending_loc_in_obstacle = true;
+                }
             }
             optimalPathFound = 1;
             optimalInd.push_back(ending_ind);
@@ -351,8 +367,13 @@ void PathPlanner::refineWithMPC(vector_t &graph_sol, vector_t &sol, ObstacleColl
         for (auto obstacle : O.obstacles) {
             obstacle.b += params_.buffer*vector_t::Ones(obstacle.b.size());
             matrix_t coll = obstacle.A * ending_loc - obstacle.b;
-            if ((coll.array() <= 0).all())
-                ending_loc_in_obstacle = true;
+            if (obstacle.occType == OBST) {
+                if ((coll.array() <= 0).all())
+                    ending_loc_in_obstacle = true;
+            } else if (obstacle.occType == FREE) {
+                if (!(coll.array() <= 0).all())
+                    ending_loc_in_obstacle = true;
+            }
         }
         if (optimalPathFound & ending_loc_in_obstacle) {
             ending_loc = optimalPath[0];

@@ -30,7 +30,7 @@ public:
 
     Planner_Params params_;
 
-    int state_size_;
+    int state_size_; 
     std::unique_ptr<MPC> mpc_;
     Graph graph;
     Graph cut_graph;
@@ -50,6 +50,8 @@ public:
     OsqpSettings graphSettings;
 
     BezierParams B_p;
+
+    enum OCC occ_ = OBST;
 
     scalar_t percentageEdgesRemovedWithHeuristic = 0;
     bool optimalPathFound = false;
