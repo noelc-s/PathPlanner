@@ -15,6 +15,8 @@ struct Obstacle
     OCC occType;
 };
 
+// OBSTACLES must be stored free space first then obstacles second
+// also, need at least one free space that contains the whole space if doing only obstacles.
 class ObstacleCollector {
 public:
     ObstacleCollector();

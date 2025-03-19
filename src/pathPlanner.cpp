@@ -182,11 +182,16 @@ void PathPlanner::cutGraph(ObstacleCollector &O, std::condition_variable &cv, st
         std::vector<int> uncertain_obst_indices_tmp;
         std::vector<int> uncertain_edge_indices_tmp;
         bool any_cut = false;
+        bool in_free_space = false;
+        bool in_obstacle = false;
         for (size_t o = 0; o < MembershipMatrix.cols(); ++o) {
-            if (O.obstacles[o].occType == OBST) {
+            if (O.obstacles[o].occType == FREE) {
                 if (MembershipMatrix(e, o) == 1) {
-                    cut_indeces.push_back(e);
-                    any_cut = true;
+                    in_free_space = true;
+                }
+            } else if (O.obstacles[o].occType == OBST) {
+                if (MembershipMatrix(e, o) == 1) {
+                    in_obstacle = true;
                     break;
                 }
                 if (MembershipMatrix(e, o) == 2) {
@@ -194,16 +199,14 @@ void PathPlanner::cutGraph(ObstacleCollector &O, std::condition_variable &cv, st
                     uncertain_obst_indices_tmp.push_back(o);
                     uncertain_edge_indices_tmp.push_back(e);
                 }
-            } else if (O.obstacles[o].occType == FREE) {
-                if (MembershipMatrix(e, o) == 0 || MembershipMatrix(e, o) == 2) {
-                    cut_indeces.push_back(e);
-                    any_cut = true;
-                    break;
-                }
             } else {
                 std::cout << "Obstacle membership logic not implemented yet" << std::endl;
                 exit(2);
             }
+        }
+        if (in_obstacle || !in_free_space) {
+            cut_indeces.push_back(e);
+            any_cut = true;
         }
         if (!any_cut & uncertain_edges_tmp.size() > 0) {
             any_uncertain_edges = true;
@@ -321,6 +324,7 @@ void PathPlanner::findPath(const std::vector<Obstacle> obstacles, vector_t start
             // empty solve, but the start and end of the graph are the same
 
             bool ending_loc_in_obstacle = false;
+            bool ending_loc_in_freespace = false;
             for (auto obstacle : obstacles) {
                 obstacle.b += params_.buffer*vector_t::Ones(obstacle.b.size());
                 matrix_t coll = obstacle.A * ending_location - obstacle.b;
@@ -328,13 +332,13 @@ void PathPlanner::findPath(const std::vector<Obstacle> obstacles, vector_t start
                     if ((coll.array() <= 0).all())
                         ending_loc_in_obstacle = true;
                 } else if (obstacle.occType == FREE) {
-                    if (!(coll.array() <= 0).all())
-                        ending_loc_in_obstacle = true;
+                    if ((coll.array() <= 0).all())
+                        ending_loc_in_freespace = true;
                 }
             }
             optimalPathFound = 1;
             optimalInd.push_back(ending_ind);
-            if (ending_loc_in_obstacle) {
+            if (ending_loc_in_obstacle || !ending_loc_in_freespace) {
                 optimalPath.push_back(points[ending_ind]);
             } else {
                 optimalPath.push_back(ending_location);
@@ -364,6 +368,7 @@ void PathPlanner::refineWithMPC(vector_t &graph_sol, vector_t &sol, ObstacleColl
 
 
         bool ending_loc_in_obstacle = false;
+        bool ending_loc_in_freespace = false;
         for (auto obstacle : O.obstacles) {
             obstacle.b += params_.buffer*vector_t::Ones(obstacle.b.size());
             matrix_t coll = obstacle.A * ending_loc - obstacle.b;
@@ -371,11 +376,11 @@ void PathPlanner::refineWithMPC(vector_t &graph_sol, vector_t &sol, ObstacleColl
                 if ((coll.array() <= 0).all())
                     ending_loc_in_obstacle = true;
             } else if (obstacle.occType == FREE) {
-                if (!(coll.array() <= 0).all())
-                    ending_loc_in_obstacle = true;
+                if ((coll.array() <= 0).all())
+                    ending_loc_in_freespace = true;
             }
         }
-        if (optimalPathFound & ending_loc_in_obstacle) {
+        if (optimalPathFound & (ending_loc_in_obstacle || !ending_loc_in_freespace)) {
             ending_loc = optimalPath[0];
         }
 
