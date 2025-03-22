@@ -15,7 +15,6 @@ ObstacleCollector::ObstacleCollector() {
         -1, 0, 0, 0,
         0, 1, 0, 0,
         0, -1, 0, 0;
-    obstacle.Adjacency.resize(num_obstacle_faces, num_obstacle_faces);
     obstacle.occType = OBST;
 
     // obstacle.Adjacency << 0, 1, 0, 1,
@@ -39,10 +38,6 @@ ObstacleCollector::ObstacleCollector() {
     //     obstacles.push_back(obstacle);
     // }
 
-    obstacle.Adjacency << 1, 0, 1, 0,
-        1, 0, 0, 1,
-        0, 1, 0, 1,
-        0, 1, 1, 0;
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis_x(-20, -20);
@@ -127,7 +122,11 @@ void getSeparatingHyperplane(Obstacle obstacle, vector_t x, vector_t &A_hyp, sca
             closest_dist = dist_to_point;
         }
     }
-    vector_t faces = obstacle.Adjacency.block(closest_point,0,1,obstacle.Adjacency.cols()).transpose();
+    // vector_t faces = obstacle.Adjacency.block(closest_point,0,1,obstacle.Adjacency.cols()).transpose();
+    vector_t faces(obstacle.A.rows());
+    faces.setZero();
+    faces(closest_point) = 1;
+    faces((closest_point + 1) % obstacle.A.rows()) = 1;
     inds = (obstacle.A.block(0,0,obstacle.A.rows(),2) * x - obstacle.b).array() > -1e-2 && faces.array() > 0;
 
     int num_constraints_violated = inds.cast<int>().sum();

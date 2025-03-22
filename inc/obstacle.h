@@ -11,7 +11,8 @@ struct Obstacle
     vector_t b;
     vector_t center;
     matrix_t v; // vertex representation
-    matrix_t Adjacency; // points to faces (1 at (i,j) if point i touches face j)
+    // matrix_t Adjacency; // points to faces (1 at (i,j) if point i touches face j)
+    // assumes that edge i connectes vertex i to i+1 (modded)
     OCC occType;
 };
 

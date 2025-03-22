@@ -5,6 +5,7 @@
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/copy.hpp>
 
+
 using scalar_t = double;
 
 using vector_2t = Eigen::Matrix<scalar_t, 2, 1>;

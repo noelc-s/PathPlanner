@@ -27,6 +27,13 @@ class PathPlanner {
 public:
     PathPlanner(int state_size, int input_size, const MPC_Params mpc_params, const Planner_Params p_p);
     void initialize(const ObstacleCollector O);
+    void save_graph();
+    void load_graph();
+    std::string getPointFile();
+    std::string getEdgeFile();
+    std::string getVertexFile();
+    std::string getBaseFile();
+    std::string getBezFile();
 
     Planner_Params params_;
 
