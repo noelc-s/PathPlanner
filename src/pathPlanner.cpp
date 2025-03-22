@@ -61,28 +61,39 @@ void PathPlanner::initialize(const ObstacleCollector O)
     graphSettings.polish = false;
     graphSettings.max_iter = 20;
 
-    if (params_.use_random_grid) {
-        points = generateUniformPoints(
-            params_.num_points,
-            params_.x_bounds[0], params_.x_bounds[1],
-            params_.x_bounds[2], params_.x_bounds[3],
-            params_.dx_bounds[0], params_.dx_bounds[1],
-            params_.dx_bounds[2], params_.dx_bounds[3]);   
+    // Check if file exists fitting the current params
+    std::ifstream file(getPointFile());
+    if (file){
+        std::cout << "Loading graph" << std::endl;
+        load_graph();
+        std::cout << "Loaded graph" << std::endl;
     } else {
-        points = generateGridPoints(
-            params_.num_points,
-            params_.x_bounds[0], params_.x_bounds[1],
-            params_.x_bounds[2], params_.x_bounds[3],
-            params_.dx_bounds[0], params_.dx_bounds[1],
-            params_.dx_bounds[2], params_.dx_bounds[3]);
+        std::cout << "New graph encountered. Generating" << std::endl;
+        if (params_.use_random_grid) {
+            points = generateUniformPoints(
+                params_.num_points,
+                params_.x_bounds[0], params_.x_bounds[1],
+                params_.x_bounds[2], params_.x_bounds[3],
+                params_.dx_bounds[0], params_.dx_bounds[1],
+                params_.dx_bounds[2], params_.dx_bounds[3]);   
+        } else {
+            points = generateGridPoints(
+                params_.num_points,
+                params_.x_bounds[0], params_.x_bounds[1],
+                params_.x_bounds[2], params_.x_bounds[3],
+                params_.dx_bounds[0], params_.dx_bounds[1],
+                params_.dx_bounds[2], params_.dx_bounds[3]);
+        }
+
+        auto F_G_bound = std::bind(&PathPlanner::F_G, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+
+        // Create the graph
+        graph = buildGraph(points, F_G_bound, D_nT_vec_, Bez_);
+        edges = getBezEdges(graph, vertexInds);
+
+        save_graph();
+        std::cout << "Saved graph." << std::endl;
     }
-
-
-    auto F_G_bound = std::bind(&PathPlanner::F_G, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-
-    graph = buildGraph(points, F_G_bound, D_nT_vec_, Bez_);
-
-    edges = getBezEdges(graph, vertexInds);
 
     // graphQP.setupQP(graphInstance, edges, O.obstacles[0]);
     // graphQP.initializeQP(graphSolver, graphInstance, graphSettings);
@@ -151,18 +162,13 @@ void PathPlanner::cutGraph(ObstacleCollector &O, std::condition_variable &cv, st
     int_vector_t Membership(O.obstacles.size() * edges.size());
     timer.time("    Dynamically allocate membership: ");
     ObstacleCollector O_buffered = O;
-    // TODO: assumes that all obstacles are the same complexity (num faces)!
-    static const vector_t ones = vector_t::Ones(O_buffered.obstacles[0].b.size());
     for (auto &obstacle : O_buffered.obstacles)
     {
+        vector_t ones = vector_t::Ones(obstacle.b.size());
         obstacle.b += params_.buffer*ones;
-        for (int r = 0; r < obstacle.v.rows(); r++) {
-            auto faces = obstacle.Adjacency.row(r);
-            for (int i = 0; i < faces.size(); i++) {
-                if (faces[i] == 1) {
-                    obstacle.v.row(r) += params_.buffer * obstacle.A.block(i, 0, 1, 2);
-                }
-            }
+        for (int edge = 0; edge < obstacle.A.rows(); edge++) {
+            obstacle.v.row(edge) += params_.buffer * obstacle.A.block(edge, 0, 1, 2);
+            obstacle.v.row((edge + 1) % obstacle.A.rows()) += params_.buffer * obstacle.A.block(edge, 0, 1, 2);
         }
     }
     timer.time("    Buffer osbtacle: ");
@@ -446,18 +452,13 @@ void PathPlanner::refineWithMPC(vector_t &graph_sol, vector_t &sol, ObstacleColl
 
 
         ObstacleCollector O_buffered = O;
-        // TODO: assumes that all obstacles are the same complexity (num faces)!
-        static const vector_t ones = vector_t::Ones(O_buffered.obstacles[0].b.size());
         for (auto &obstacle : O_buffered.obstacles)
         {
+            vector_t ones = vector_t::Ones(obstacle.b.size());
             obstacle.b += params_.buffer*ones;
-            for (int r = 0; r < obstacle.v.rows(); r++) {
-                auto faces = obstacle.Adjacency.row(r);
-                for (int i = 0; i < faces.size(); i++) {
-                    if (faces[i] == 1) {
-                        obstacle.v.row(r) += params_.buffer * obstacle.A.block(i, 0, 1, 2);
-                    }
-                }
+            for (int edge = 0; edge < obstacle.A.rows(); edge++) {
+                obstacle.v.row(edge) += params_.buffer * obstacle.A.block(edge, 0, 1, 2);
+                obstacle.v.row((edge + 1) % obstacle.A.rows()) += params_.buffer * obstacle.A.block(edge, 0, 1, 2);
             }
         }
 
@@ -476,4 +477,184 @@ void PathPlanner::refineWithMPC(vector_t &graph_sol, vector_t &sol, ObstacleColl
 
         sol = mpc_->solve(O_buffered, sol, starting_loc, xg);
         timer.time("    Solve: ");
+}
+
+
+void PathPlanner::load_graph() {
+        // Read edges
+    std::ifstream edgeFile(getEdgeFile());
+    if (!edgeFile) {
+        throw std::runtime_error("Could not open edgeFile for reading!");
+    }
+    size_t numEdges;
+    edgeFile >> numEdges;
+    edges.resize(numEdges);
+    for (size_t i = 0; i < numEdges; ++i) {
+        int rows, cols;
+        edgeFile >> rows >> cols;
+        edges[i].resize(rows, cols);
+        for (int r = 0; r < rows; ++r)
+            for (int c = 0; c < cols; ++c)
+                edgeFile >> edges[i](r, c);
+    }
+    edgeFile.close();
+
+
+    // Read points
+    std::ifstream pointFile(getPointFile());
+    if (!pointFile) {
+        throw std::runtime_error("Could not open pointFile for reading!");
+    }
+    size_t numPoints;
+    pointFile >> numPoints;
+    points.resize(numPoints);
+    for (size_t i = 0; i < numPoints; ++i) {
+        for (int j = 0; j < 4; ++j)
+            pointFile >> points[i](j);
+    }
+    pointFile.close();
+
+
+    // Load vertex inds
+    std::ifstream vertexFile(getVertexFile());
+    if (!vertexFile) {
+        throw std::runtime_error("Could not open vertexFile for reading!");
+    }
+    size_t numPairs;
+    vertexFile >> numPairs;
+    vertexInds.resize(numPairs);
+
+    for (size_t i = 0; i < numPairs; ++i) {
+        vertexFile >> vertexInds[i].first >> vertexInds[i].second;
+    }
+    vertexFile.close();
+
+    // Load Bez_
+    std::ifstream bezFile(getBezFile());
+    if (!bezFile) {
+        throw std::runtime_error("Could not open file for loading matrix!");
+    }
+    // Read the number of rows and columns
+    int rows, cols;
+    bezFile >> rows >> cols;
+    // Resize the matrix based on the read dimensions
+    Bez_.resize(rows, cols);
+    // Read the matrix elements row by row
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            bezFile >> Bez_(i, j);  // Read each element
+        }
+    }
+    bezFile.close();
+
+
+    // Load graph
+    graph = Graph(points.size());
+    for (auto &v_ind : vertexInds) {
+        EdgeProperties ep;
+        vector_t x1_x2(2*points[0].size());
+        int i = v_ind.first;
+        int j = v_ind.second;
+        x1_x2 << points[i], points[j];
+        matrix_t mul = Bez_*x1_x2;
+        matrix_t controlPoints(4,4);
+        controlPoints << Eigen::Map<matrix_t>(mul.data(),4,4);
+        ep.weight = get_weight(controlPoints);
+        ep.controlPoints = controlPoints;
+        ep.source_vertex_ind = i;
+        ep.target_vertex_ind = j;
+        add_edge(i, j, ep, graph);
+    }
+}
+
+void PathPlanner::save_graph() {
+    // Save edges
+    std::ofstream edgeFile(getEdgeFile());
+    if (!edgeFile) {
+        throw std::runtime_error("Could not open file for writing!");
+    }
+    edgeFile << edges.size() << "\n"; // Store count
+    for (const auto& mat : edges) {
+        edgeFile << mat.rows() << " " << mat.cols() << "\n";  // Store matrix size
+        edgeFile << mat << "\n";  // Store matrix values
+    }
+    edgeFile.close();
+
+
+    // Save points
+    std::ofstream pointFile(getPointFile());
+    if (!edgeFile) {
+        throw std::runtime_error("Could not open pointFile for writing!");
+    }
+    pointFile << points.size() << "\n";  // Store count
+    for (const auto& vec : points) {
+        pointFile << vec.transpose() << "\n";  // Store vector values
+    }
+    pointFile.close();
+
+
+    // Save vertex inds
+    std::ofstream vertexFile(getVertexFile());
+    if (!vertexFile) {
+        throw std::runtime_error("Could not open vertexFile for writing!");
+    }
+    // Save number of pairs
+    vertexFile << vertexInds.size() << "\n";
+    // Save each pair
+    for (const auto& pair : vertexInds) {
+        vertexFile << pair.first << " " << pair.second << "\n";
+    }
+    vertexFile.close();
+
+    // Save Bez_
+    std::ofstream bezFile(getBezFile());
+    if (!bezFile) {
+        throw std::runtime_error("Could not open file for saving matrix!");
+    }
+    // Write the number of rows and columns
+    bezFile << Bez_.rows() << " " << Bez_.cols() << "\n"; 
+    // Write each element of the matrix (row by row)
+    for (int i = 0; i < Bez_.rows(); ++i) {
+        for (int j = 0; j < Bez_.cols(); ++j) {
+            bezFile << Bez_(i, j) << " ";  // Write each element with a space
+        }
+        bezFile << "\n";  // Newline after each row
+    }
+    bezFile.close();
+}
+
+std::string PathPlanner::getPointFile() {
+    return getBaseFile() + "_point.txt";
+}
+
+std::string PathPlanner::getEdgeFile() {
+    return getBaseFile() + "_edge.txt";
+}
+
+std::string PathPlanner::getVertexFile() {
+    return getBaseFile() + "_vertex.txt";
+}
+
+std::string PathPlanner::getBezFile() {
+    return getBaseFile() + "_bez.txt";
+}
+
+std::string PathPlanner::getBaseFile() {
+    std::stringstream ss;
+
+    // Convert each parameter to string and append to the stringstream
+    ss << "../rsc/graph/graph_";
+    ss << "num_points=" << params_.num_points << "_";
+    ss << "x_bounds=[" << params_.x_bounds.transpose() << "]_";
+    ss << "dx_bounds=[" << params_.dx_bounds.transpose() << "]_";
+    ss << "log_edges=" << (params_.log_edges ? "true" : "false") << "_";
+    ss << "use_planner=" << (params_.use_planner ? "true" : "false") << "_";
+    ss << "buffer=" << params_.buffer << "_";
+    ss << "bez_dt=" << params_.bez_dt << "_";
+    ss << "use_zed=" << (params_.use_zed ? "true" : "false") << "_";
+    ss << "use_random_grid=" << (params_.use_random_grid ? "true" : "false") << "_";
+    ss << "max_graph_sol_length=" << params_.max_graph_sol_length << "_";
+    ss << "max_num_obstacles=" << params_.max_num_obstacles;
+
+    return ss.str();  // Return the unique identifier string
 }
