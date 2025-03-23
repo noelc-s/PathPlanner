@@ -5,7 +5,8 @@ project(path_planning)
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_CXX_FLAGS "-O3 -pthread -pg -fopenmp -fPIC")
+# set(CMAKE_CXX_FLAGS "-O3 -pthread -pg -fopenmp -fPIC")
+set(CMAKE_CXX_FLAGS "-pthread -pg -fopenmp -fPIC")
 
 set(bezier_DIR /home/noelcs/repos/BezierTubes/cpp CACHE PATH "Path to BezierTubes dir")
 
@@ -53,7 +54,7 @@ add_definitions(-DUSE_CUDA)
 
 
 find_package(CUDA REQUIRED)
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_89")
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_87")
 
 set(CUDA_SOURCES
     src/kernel.cu
@@ -63,17 +64,17 @@ cuda_add_library(cuda_kernel STATIC ${CUDA_SOURCES})
 target_include_directories(cuda_kernel PUBLIC inc/)
 target_link_libraries(cuda_kernel Eigen3::Eigen)
 
-# add_executable(cuda src/main.cpp ${SOURCE_FILES})
-# cuda_add_executable(cuda src/main.cpp ${CUDA_SOURCES} src/obstacle.cpp)
-# target_link_libraries(cuda ${CUDA_LIBRARIES})
+# add_executable(test_path src/main.cpp ${SOURCE_FILES})
+# cuda_add_executable(test_path src/main.cpp ${CUDA_SOURCES} src/obstacle.cpp)
+# target_link_libraries(test_path ${CUDA_LIBRARIES})
 
-# target_include_directories( cuda PUBLIC inc/)
-# target_link_libraries(cuda Eigen3::Eigen)
+# target_include_directories( test_path PUBLIC inc/)
+# target_link_libraries(test_path Eigen3::Eigen)
 ###
 
 add_executable(test_path src/main.cpp src/utils.cpp src/obstacle.cpp)
 target_include_directories(test_path PUBLIC inc/)
-target_link_libraries(test_path Eigen3::Eigen yaml-cpp)
+target_link_libraries(test_path Eigen3::Eigen yaml-cpp cuda_kernel)
 
 find_package(yaml-cpp REQUIRED)
 
